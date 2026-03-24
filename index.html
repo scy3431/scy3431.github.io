@@ -3,244 +3,242 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Sean Yoo</title>
-
-<link href="https://fonts.googleapis.com/css2?family=EB+Garamond&family=DM+Mono&display=swap" rel="stylesheet">
-
+<title>Sean Yoo | NYU</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=JetBrains+Mono:wght@300;400&display=swap" rel="stylesheet">
 <style>
-* { box-sizing: border-box; margin: 0; padding: 0; }
-
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #fdfcf8;
+  --text: #1a1a1a;
+  --muted: #555;
+  --light: #888;
+  --border: #ddd;
+  --accent: #8b1a1a;
+  --link: #2a5a8c;
+  --serif: 'Source Serif 4', Georgia, serif;
+  --mono: 'JetBrains Mono', monospace;
+}
+html { scroll-behavior: smooth; }
 body {
-  background: #0a0a0a;
-  color: #e8e4dc;
-  font-family: 'EB Garamond', serif;
-  line-height: 1.7;
+  background: var(--bg); color: var(--text);
+  font-family: var(--serif); font-size: 17px; line-height: 1.75;
+  -webkit-font-smoothing: antialiased;
 }
+a { color: var(--link); text-decoration: none; }
+a:hover { text-decoration: underline; }
+.page { max-width: 860px; margin: 0 auto; padding: 3.5rem 2rem 6rem; }
 
-/* NAV */
-nav {
-  position: fixed;
-  top: 0;
-  width: 100%;
-  padding: 1rem 2rem;
-  display: flex;
-  justify-content: space-between;
-  background: rgba(10,10,10,0.9);
-  border-bottom: 1px solid #222;
+/* HEADER */
+.header {
+  display: grid; grid-template-columns: 180px 1fr;
+  gap: 2.5rem; margin-bottom: 2.5rem; align-items: start;
 }
+.photo-placeholder {
+  width: 160px; height: 200px; background: #e8e4dc;
+  border: 1px solid var(--border); display: flex;
+  align-items: center; justify-content: center;
+  font-family: var(--mono); font-size: 11px;
+  color: var(--light); text-align: center; line-height: 1.5;
+}
+.photo-col img { width: 160px; height: 200px; object-fit: cover; border: 1px solid var(--border); display: block; }
+.name-block h1 { font-size: 2rem; font-weight: 600; letter-spacing: -0.01em; margin-bottom: 0.3rem; }
+.name-block .title { color: var(--muted); font-size: 1rem; margin-bottom: 0.15rem; }
+.name-block .institution { font-size: 1rem; margin-bottom: 0.75rem; }
+.name-block .email { font-family: var(--mono); font-size: 13px; color: var(--muted); margin-bottom: 1rem; }
+.header-nav { display: flex; flex-wrap: wrap; gap: 0 0; list-style: none; font-size: 0.95rem; }
+.header-nav li::after { content: ' · '; color: var(--light); }
+.header-nav li:last-child::after { content: ''; }
 
-/* HERO */
-#hero {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  padding: 6rem 2rem;
-  max-width: 900px;
-  margin: auto;
+/* BIO */
+.bio {
+  margin-bottom: 3rem; font-size: 1rem;
+  border-top: 1px solid var(--border); padding-top: 1.75rem;
 }
-
-.hero-name {
-  font-size: clamp(3rem, 7vw, 5rem);
-}
-
-.hero-desc {
-  color: #888;
-  margin: 1rem 0 2rem;
-  max-width: 500px;
-}
-
-.hero-links {
-  display: flex;
-  gap: 1rem;
-  flex-wrap: wrap;
-}
-
-.hero-link {
-  border: 1px solid #444;
-  padding: 0.6rem 1.4rem;
-  text-decoration: none;
-  color: #e8e4dc;
-  font-family: 'DM Mono', monospace;
-  font-size: 12px;
-  transition: 0.2s;
-}
-
-.hero-link:hover {
-  border-color: #c8b89a;
-  color: #c8b89a;
-}
+.bio p + p { margin-top: 0.85rem; }
 
 /* SECTIONS */
-section {
-  max-width: 900px;
-  margin: auto;
-  padding: 4rem 2rem;
-}
-
-/* FEATURED */
-.featured-box {
-  border: 1px solid #222;
-  padding: 2rem;
-  background: #111;
-}
-
-/* PROJECTS */
-.projects-grid {
-  display: grid;
-  gap: 1rem;
-}
-
-.project-card {
-  border-bottom: 1px solid #222;
-  padding: 1.5rem 0;
-  opacity: 0;
-  transform: translateY(10px);
-  transition: 0.4s;
-}
-
-.project-card.visible {
-  opacity: 1;
-  transform: none;
-}
-
-.project-card:hover {
-  transform: translateY(-4px);
+.section { margin-bottom: 3rem; }
+.section h2 {
+  font-size: 1.35rem; font-weight: 600; color: var(--accent);
+  border-bottom: 1px solid var(--border); padding-bottom: 0.4rem;
+  margin-bottom: 1.5rem; letter-spacing: 0.01em;
 }
 
 /* EXPERIENCE */
-.exp-item {
-  margin-bottom: 2rem;
-  opacity: 0;
-  transform: translateY(10px);
+.exp-item { display: grid; grid-template-columns: 160px 1fr; gap: 1rem; margin-bottom: 1.25rem; font-size: 0.97rem; }
+.exp-date { font-family: var(--mono); font-size: 12px; color: var(--light); padding-top: 0.2rem; white-space: nowrap; }
+.exp-body strong { font-weight: 600; display: block; }
+.exp-body .role { color: var(--muted); font-style: italic; font-size: 0.93rem; }
+.exp-body p { margin-top: 0.3rem; color: var(--muted); font-size: 0.93rem; }
+
+/* PROJECTS */
+.project-item { margin-bottom: 1.75rem; font-size: 0.97rem; }
+.project-title { font-weight: 600; font-size: 1rem; }
+.project-links { font-family: var(--mono); font-size: 12px; color: var(--light); margin-left: 0.4rem; }
+.project-links a { font-family: var(--mono); font-size: 12px; }
+.project-meta { color: var(--muted); font-size: 0.93rem; margin-top: 0.25rem; }
+.project-finding {
+  color: var(--text); font-size: 0.93rem; margin-top: 0.4rem;
+  border-left: 2px solid var(--accent); padding-left: 0.75rem; font-style: italic;
 }
 
-.exp-item.visible {
-  opacity: 1;
-  transform: none;
+/* SKILLS */
+.skills-table { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
+.skills-table td { padding: 0.4rem 0; vertical-align: top; }
+.skills-table td:first-child {
+  font-weight: 400; width: 140px; color: var(--muted);
+  font-size: 0.88rem; font-family: var(--mono);
+  text-transform: uppercase; letter-spacing: 0.04em; padding-right: 1rem;
 }
+.skills-table tr { border-bottom: 1px solid #eee; }
+.skills-table tr:last-child { border-bottom: none; }
 
 /* INTERESTS */
-#interests li {
-  color: #888;
-  margin-bottom: 0.4rem;
-}
+.exploring-list { list-style: none; font-size: 0.97rem; }
+.exploring-list li { padding: 0.3rem 0; border-bottom: 1px solid #eee; color: var(--muted); }
+.exploring-list li::before { content: '— '; color: var(--accent); }
+.exploring-list li:last-child { border-bottom: none; }
 
-/* CONTACT */
-#contact {
-  text-align: center;
-  border-top: 1px solid #222;
+@media (max-width: 580px) {
+  .header { grid-template-columns: 1fr; }
+  .exp-item { grid-template-columns: 1fr; gap: 0.2rem; }
+  .exp-date { padding-top: 0; }
 }
 </style>
 </head>
-
 <body>
+<div class="page">
 
-<nav>
-  <div>Sean Yoo</div>
-</nav>
-
-<section id="hero">
-  <h1 class="hero-name">Sean Yoo</h1>
-  <p class="hero-desc">
-    I build systems that turn data into decisions.
-  </p>
-
-  <div class="hero-links">
-    <a class="hero-link" href="#projects">Projects</a>
-    <a class="hero-link" href="Sean_Yoo_Resume.pdf" target="_blank">Resume</a>
-    <a class="hero-link" href="https://github.com/scy3431" target="_blank">GitHub</a>
+  <div class="header">
+    <div class="photo-col">
+      <!-- Replace with <img src="photo.jpg" alt="Sean Yoo"> when you have a photo -->
+      <div class="photo-placeholder">add photo<br>here</div>
+    </div>
+    <div class="name-block">
+      <h1>Sean Yoo</h1>
+      <p class="title">B.A. Data Science &amp; History &nbsp;·&nbsp; GPA: 3.5</p>
+      <p class="institution"><a href="https://courant.nyu.edu/">NYU Courant Institute</a></p>
+      <p class="email">scy3431 [AT] nyu.edu</p>
+      <ul class="header-nav">
+        <li><a href="Sean_Yoo_Resume.pdf" target="_blank">Resume</a></li>
+        <li><a href="https://github.com/scy3431" target="_blank">GitHub</a></li>
+        <li><a href="#experience">Experience</a></li>
+        <li><a href="#projects">Projects</a></li>
+        <li><a href="#skills">Skills</a></li>
+        <li><a href="#exploring">Interests</a></li>
+      </ul>
+    </div>
   </div>
-</section>
 
-<!-- FEATURED -->
-<section>
-  <h2>Featured Project</h2>
-  <div class="featured-box">
-    <h3>Stock Trading Simulator</h3>
-    <p>
-      Built a Flask-based trading system using real-time market data, supporting portfolio tracking,
-      technical indicators (SMA/RSI), and full transaction history.
-    </p>
+  <div class="bio">
+    <p>Hi! I'm Sean, a sophomore studying Data Science and History at <a href="https://courant.nyu.edu/">NYU's Courant Institute</a>. I'm interested in the intersection of statistical modeling, machine learning, and finance — and I like building things that turn messy data into clear answers.</p>
+    <p>Recently I've been working on estimating CAPM betas for the Magnificent 7 using OLS regression on excess returns, and building NLP pipelines for text classification. Previously I've worked on data operations at <a href="https://www.stern.nyu.edu/">NYU Stern</a> and interned at HCMpoint. I'm also a member of Stern Capital Management, where I research equities and develop investment theses.</p>
+    <p>I'm actively looking for <strong>Summer 2026 internships</strong> in data science, analytics, and quantitative finance. Feel free to reach out at scy3431 [AT] nyu.edu!</p>
   </div>
-</section>
 
-<!-- PROJECTS -->
-<section id="projects">
-  <h2>Projects</h2>
+  <div class="section" id="experience">
+    <h2>Experience</h2>
 
-  <div class="projects-grid">
-
-    <div class="project-card">
-      <h3>CAPM Beta Estimation</h3>
-      <p>Analyzed 10 years of stock returns using OLS regression; identified statistically significant deviations from reported betas.</p>
+    <div class="exp-item">
+      <div class="exp-date">May 2025 – Present</div>
+      <div class="exp-body">
+        <strong>NYU Academic Advising Center</strong>
+        <span class="role">Peer Advising Leader</span>
+        <p>Automated transfer credit data preparation using Python — cleaning student records and streamlining institution/CEEB code lookup, eliminating hours of manual processing per intake cycle.</p>
+      </div>
     </div>
 
-    <div class="project-card">
-      <h3>Book Genre Classifier</h3>
-      <p>Built TF-IDF + SVM pipeline with NLTK preprocessing and F1-score evaluation.</p>
+    <div class="exp-item">
+      <div class="exp-date">Jul. – Dec. 2025</div>
+      <div class="exp-body">
+        <strong>HCMpoint</strong>
+        <span class="role">IT Operations Intern</span>
+        <p>Performed systematic data cleanup and integrity checks across internal systems. Standardized onboarding documentation, reducing ambiguity in recurring workflows.</p>
+      </div>
     </div>
 
-    <div class="project-card">
-      <h3>Course Registration System</h3>
-      <p>
-        Designed a Java-based system for managing course enrollment with role-based access control.
-        Implemented serialization and file I/O for persistent system state.
-      </p>
+    <div class="exp-item">
+      <div class="exp-date">Aug. 2024 – Jan. 2025</div>
+      <div class="exp-body">
+        <strong>NYU Stern — DART</strong>
+        <span class="role">Data Operations Analyst</span>
+        <p>Automated cleaning and deduplication of 2,400+ alumni records using Python and Excel, reducing query time by ~30%. Maintained constituent data in Blackbaud CRM for reliable alumni communications.</p>
+      </div>
     </div>
 
-  </div>
-</section>
-
-<!-- EXPERIENCE -->
-<section>
-  <h2>Experience</h2>
-
-  <div class="exp-item">
-    <h3>NYU</h3>
-    <p>Automated transfer credit processing using Python, eliminating hours of manual work.</p>
+    <div class="exp-item">
+      <div class="exp-date">Sep. 2025 – Present</div>
+      <div class="exp-body">
+        <strong>Stern Capital Management</strong>
+        <span class="role">General Member</span>
+        <p>Researched equities and developed long/short investment theses, analyzing market trends and portfolio performance against benchmark indices.</p>
+      </div>
+    </div>
   </div>
 
-  <div class="exp-item">
-    <h3>HCMpoint</h3>
-    <p>Improved data integrity across internal systems through systematic cleanup and validation.</p>
+  <div class="section" id="projects">
+    <h2>Projects</h2>
+
+    <div class="project-item">
+      <div>
+        <span class="project-title">Estimating True CAPM Betas for the Magnificent 7</span>
+        <span class="project-links">[<a href="https://github.com/scy3431/Mag7Beta_Project" target="_blank">GitHub</a>]</span>
+      </div>
+      <p class="project-meta">Python · Statsmodels · SciPy · yfinance &nbsp;·&nbsp; Dec. 2025 – Jan. 2026</p>
+      <p class="project-meta" style="margin-top:0.3rem;">Estimated CAPM betas for AAPL, MSFT, GOOGL, AMZN, META, NVDA, and TSLA via OLS regression on excess returns (2015–2025), correctly subtracting the 3-month T-bill risk-free rate. Conducted robustness checks across daily and monthly return frequencies; computed 95% confidence intervals, Jensen's alpha, and R² for each stock.</p>
+      <p class="project-finding">All 7 stocks rejected H₀ at p &lt; 0.05 — Yahoo Finance betas overstate systematic risk relative to a 10-year window, consistent with beta mean-reversion over longer horizons.</p>
+    </div>
+
+    <div class="project-item">
+      <div>
+        <span class="project-title">Book Genre Classifier</span>
+        <span class="project-links">[<a href="https://github.com/scy3431/Book-Genre-Prediction" target="_blank">GitHub</a>]</span>
+      </div>
+      <p class="project-meta">Python · NLTK · Scikit-learn · TF-IDF · SVM &nbsp;·&nbsp; Jan. 2026 – Present</p>
+      <p class="project-meta" style="margin-top:0.3rem;">Multi-class NLP pipeline predicting book genres from back-cover descriptions. Custom NLTK preprocessor with WordNet lemmatization, stopword filtering, and TF-IDF vectorization (unigrams + bigrams, 5k features). One-vs-Rest LinearSVC evaluated on a stratified 80/20 split with per-class F1 scores and a confusion matrix heatmap.</p>
+    </div>
+
+    <div class="project-item">
+      <div>
+        <span class="project-title">Paper Trading Simulator</span>
+        <span class="project-links">[<a href="https://github.com/scy3431/paper-trade" target="_blank">GitHub</a>]</span>
+      </div>
+      <p class="project-meta">Flask · Python · yfinance · Chart.js &nbsp;·&nbsp; Jun. – Aug. 2025</p>
+      <p class="project-meta" style="margin-top:0.3rem;">Flask/Python RESTful API for fetching real-time stock data, executing virtual trades, and managing multi-stock portfolios with cost basis tracking and gain/loss analysis. Interactive Chart.js front-end with SMA 20/50 and RSI technical indicators.</p>
+    </div>
+
+    <div class="project-item">
+      <div>
+        <span class="project-title">Course Registration System</span>
+        <span class="project-links">[<a href="https://github.com/scy3431" target="_blank">GitHub</a>]</span>
+      </div>
+      <p class="project-meta">Java · OOP · Serialization &nbsp;·&nbsp; Jan. – Feb. 2025 &nbsp;·&nbsp; CS-102: Data Structures</p>
+      <p class="project-meta" style="margin-top:0.3rem;">Multi-user platform with role-based access control built on OOP principles — abstract User superclass with polymorphic Admin and Student subclasses implementing dedicated interfaces. Java serialization for persistent state and a StringTokenizer CSV parser with malformed-row validation.</p>
+    </div>
   </div>
 
-  <div class="exp-item">
-    <h3>NYU Stern</h3>
-    <p>Reduced query time by ~30% by cleaning and deduplicating 2,400+ records.</p>
+  <div class="section" id="skills">
+    <h2>Skills</h2>
+    <table class="skills-table">
+      <tr><td>Languages</td><td>Python, SQL, Java, HTML/CSS</td></tr>
+      <tr><td>Libraries</td><td>NumPy, Pandas, Matplotlib, Scikit-learn, Statsmodels, SciPy, NLTK, yfinance, Chart.js</td></tr>
+      <tr><td>Tools</td><td>Flask, Git, BigQuery, MS Excel / Office</td></tr>
+      <tr><td>Certificates</td><td>Google Data Analytics Professional Certificate</td></tr>
+      <tr><td>Spoken</td><td>English (Native), Italian (Intermediate)</td></tr>
+    </table>
   </div>
 
-</section>
+  <div class="section" id="exploring">
+    <h2>Currently Exploring</h2>
+    <ul class="exploring-list">
+      <li>Statistical arbitrage and pairs trading strategies</li>
+      <li>Market microstructure and high-frequency data analysis</li>
+      <li>ML for finance — factor models and alpha generation</li>
+      <li>Bayesian methods for uncertainty quantification</li>
+    </ul>
+  </div>
 
-<!-- INTERESTS -->
-<section id="interests">
-  <h2>Currently Exploring</h2>
-  <ul>
-    <li>Statistical arbitrage</li>
-    <li>Market microstructure</li>
-    <li>ML for finance</li>
-  </ul>
-</section>
-
-<!-- CONTACT -->
-<section id="contact">
-  <h2>Contact</h2>
-  <p>scy3431@nyu.edu</p>
-</section>
-
-<script>
-const observer = new IntersectionObserver((entries) => {
-  entries.forEach(entry => {
-    if (entry.isIntersecting) {
-      entry.target.classList.add('visible');
-    }
-  });
-});
-
-document.querySelectorAll('.project-card, .exp-item')
-  .forEach(el => observer.observe(el));
-</script>
-
+</div>
 </body>
 </html>
