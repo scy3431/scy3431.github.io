@@ -5,65 +5,29 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Sean Yoo</title>
 
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond&family=DM+Mono&display=swap" rel="stylesheet">
 
 <style>
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-:root {
-  --bg: #0a0a0a;
-  --surface: #111;
-  --border: rgba(255,255,255,0.07);
-  --border-hover: rgba(255,255,255,0.15);
-  --text: #e8e4dc;
-  --muted: #6b6760;
-  --accent: #c8b89a;
-  --accent-dim: rgba(200,184,154,0.12);
-  --mono: 'DM Mono', monospace;
-  --serif: 'EB Garamond', serif;
-}
-
 body {
-  background: var(--bg);
-  color: var(--text);
-  font-family: var(--serif);
-  line-height: 1.7;
+  margin: 0;
+  background: #0a0a0a;
+  color: #e8e4dc;
+  font-family: 'EB Garamond', serif;
 }
 
 /* NAV */
 nav {
   position: fixed;
-  top: 0;
   width: 100%;
+  padding: 1rem 2rem;
   display: flex;
   justify-content: space-between;
-  padding: 1.2rem 3rem;
-  background: rgba(10,10,10,0.9);
-  backdrop-filter: blur(10px);
-  border-bottom: 1px solid var(--border);
-}
-
-.nav-links {
-  display: flex;
-  gap: 2rem;
-  list-style: none;
-}
-
-.nav-links a {
-  font-family: var(--mono);
-  font-size: 12px;
-  color: var(--muted);
-  text-decoration: none;
+  background: rgba(0,0,0,0.9);
 }
 
 /* HERO */
 #hero {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  padding: 8rem 3rem;
+  padding: 8rem 2rem;
   max-width: 900px;
   margin: auto;
 }
@@ -73,80 +37,56 @@ nav {
 }
 
 .hero-desc {
-  color: var(--muted);
-  margin: 1rem 0 2rem;
+  color: #888;
+  margin: 1rem 0;
 }
 
-.hero-links {
-  display: flex;
-  gap: 1rem;
-}
-
-.hero-link {
-  border: 1px solid var(--border-hover);
-  padding: 0.6rem 1.4rem;
+.hero-links a {
+  margin-right: 1rem;
   text-decoration: none;
-  color: var(--text);
-  font-family: var(--mono);
-  transition: 0.2s;
-}
-
-.hero-link:hover {
-  color: var(--accent);
-  border-color: var(--accent);
+  border: 1px solid #555;
+  padding: 0.5rem 1rem;
+  color: white;
 }
 
 /* FEATURED */
 #featured {
   max-width: 900px;
   margin: auto;
-  padding: 4rem 3rem;
+  padding: 3rem 2rem;
 }
 
 .featured-box {
+  border: 1px solid #333;
   padding: 2rem;
-  border: 1px solid var(--border);
-  background: var(--surface);
-}
-
-/* SECTIONS */
-section {
-  max-width: 900px;
-  margin: auto;
-  padding: 4rem 3rem;
 }
 
 /* PROJECTS */
 .projects-grid {
   display: grid;
   gap: 1px;
-  background: var(--border);
 }
 
 .project-card {
   padding: 2rem;
-  background: var(--bg);
-  text-decoration: none;
-  color: inherit;
+  border-bottom: 1px solid #222;
   transition: 0.3s;
-  transform: translateY(10px);
   opacity: 0;
+  transform: translateY(10px);
 }
 
 .project-card.visible {
-  transform: none;
   opacity: 1;
+  transform: none;
 }
 
 .project-card:hover {
   transform: translateY(-6px);
-  box-shadow: 0 10px 30px rgba(0,0,0,0.4);
-  background: var(--surface);
 }
 
 /* EXPERIENCE */
 .exp-item {
-  margin-bottom: 2rem;
+  padding: 1rem 0;
   opacity: 0;
   transform: translateY(10px);
 }
@@ -157,21 +97,15 @@ section {
 }
 
 /* INTERESTS */
-#interests ul {
-  margin-top: 1rem;
-}
-
 #interests li {
-  margin-bottom: 0.5rem;
-  color: var(--muted);
+  color: #888;
 }
 
 /* CONTACT */
 #contact {
   text-align: center;
-  border-top: 1px solid var(--border);
+  padding: 3rem;
 }
-
 </style>
 </head>
 
@@ -179,10 +113,6 @@ section {
 
 <nav>
   <div>Sean Yoo</div>
-  <ul class="nav-links">
-    <li><a href="#projects">Projects</a></li>
-    <li><a href="#experience">Experience</a></li>
-  </ul>
 </nav>
 
 <section id="hero">
@@ -192,9 +122,9 @@ section {
   </p>
 
   <div class="hero-links">
-    <a class="hero-link" href="#projects">Projects</a>
-    <a class="hero-link" href="Sean_Yoo_Resume.pdf">Resume</a>
-    <a class="hero-link" href="https://github.com/scy3431">GitHub</a>
+    <a href="#projects">Projects</a>
+    <a href="/Sean_Yoo_Resume.pdf">Resume</a>
+    <a href="https://github.com/scy3431">GitHub</a>
   </div>
 </section>
 
@@ -202,10 +132,11 @@ section {
 <section id="featured">
   <h2>Featured Project</h2>
   <div class="featured-box">
-    <h3>Paper Trading Simulator</h3>
+    <h3>Stock Trading Simulator</h3>
     <p>
-      Built a real-time trading simulator with portfolio tracking, technical indicators (SMA/RSI),
-      and transaction history. Supports 50+ tickers with sub-200ms response time.
+      Engineered a Flask-based trading system using yfinance and pandas to fetch real-time stock data,
+      execute trades, and manage multi-asset portfolios.
+      Includes SMA/RSI indicators and full transaction history.
     </p>
   </div>
 </section>
@@ -216,15 +147,38 @@ section {
 
   <div class="projects-grid">
 
-    <a class="project-card" href="#">
-      <h3>CAPM Beta Estimation</h3>
-      <p>Analyzed 2,500+ daily returns using OLS regression with risk-free rate adjustments.</p>
-    </a>
+    <div class="project-card">
+      <h3>CAPM Beta Estimation (Mag 7)</h3>
+      <p>
+        Estimated CAPM betas for 7 major stocks using OLS regression on 10 years of excess returns.
+        Found statistically significant differences vs Yahoo Finance betas (p &lt; 0.05),
+        supporting beta mean reversion.
+      </p>
+    </div>
 
-    <a class="project-card" href="#">
+    <div class="project-card">
       <h3>Book Genre Classifier</h3>
-      <p>TF-IDF + SVM model with F1-score evaluation across multiple classes.</p>
-    </a>
+      <p>
+        Built NLP pipeline using TF-IDF (5,000 features) and LinearSVC with NLTK preprocessing.
+        Evaluated with F1 scores and confusion matrix analysis.
+      </p>
+    </div>
+
+    <div class="project-card">
+      <h3>Course Registration System</h3>
+      <p>
+        Built a Java-based course registration platform managing student enrollment,
+        course catalogs, and administrative workflows using OOP principles.
+      </p>
+      <p>
+        Implemented file I/O, serialization, and tokenization to persist system state,
+        eliminating manual data entry and enabling instant recovery.
+      </p>
+      <p>
+        Designed a multi-user system with role-based access control supporting both
+        admin management and student self-service enrollment.
+      </p>
+    </div>
 
   </div>
 </section>
@@ -234,13 +188,26 @@ section {
   <h2>Experience</h2>
 
   <div class="exp-item">
-    <h3>NYU</h3>
-    <p>Built Python pipeline automating transfer credit processing, eliminating hours of manual work.</p>
+    <h3>NYU Academic Advising Center</h3>
+    <p>
+      Built Python scripts to automate transfer credit processing,
+      eliminating hours of manual work per intake cycle.
+    </p>
   </div>
 
   <div class="exp-item">
     <h3>HCMpoint</h3>
-    <p>Cleaned and validated datasets, improving system consistency and onboarding efficiency.</p>
+    <p>
+      Performed data cleanup and integrity checks across internal systems,
+      improving reliability of operational data.
+    </p>
+  </div>
+
+  <div class="exp-item">
+    <h3>NYU Stern</h3>
+    <p>
+      Automated cleaning of 2,400+ alumni records, reducing query time by ~30%.
+    </p>
   </div>
 
 </section>
@@ -251,14 +218,14 @@ section {
   <ul>
     <li>Statistical arbitrage strategies</li>
     <li>Market microstructure</li>
-    <li>ML for financial prediction</li>
+    <li>Machine learning for financial prediction</li>
   </ul>
 </section>
 
 <!-- CONTACT -->
 <section id="contact">
   <h2>Contact</h2>
-  <p>Email: your@email.com</p>
+  <p>scy3431@nyu.edu</p>
 </section>
 
 <script>
@@ -268,7 +235,7 @@ const observer = new IntersectionObserver((entries) => {
       entry.target.classList.add('visible');
     }
   });
-}, { threshold: 0.1 });
+});
 
 document.querySelectorAll('.project-card, .exp-item')
   .forEach(el => observer.observe(el));
