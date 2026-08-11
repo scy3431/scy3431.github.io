@@ -1,0 +1,1727 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>NYU CAS Degree Planner</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    /* ── NYU Official Brand Palette ── */
+    --nyu-violet:     #57068C;   /* PMS 2597 — primary */
+    --nyu-violet-dk:  #330662;   /* PMS 2685 — dark accent */
+    --nyu-violet-md:  #702b9d;   /* mid violet */
+    --nyu-violet-lt1: #ab82c5;   /* light violet */
+    --nyu-violet-lt2: #eee6f3;   /* near-white violet tint */
+    --nyu-white:      #ffffff;
+    --nyu-black:      #000000;
+    --nyu-gray-1:     #333333;   /* body copy */
+    --nyu-gray-2:     #404040;
+    --nyu-gray-3:     #6d6d6d;
+    --nyu-gray-4:     #b8b8b8;
+    --nyu-gray-5:     #d6d6d6;
+    --nyu-gray-6:     #f2f2f2;
+
+    /* ── Semantic Aliases ── */
+    --bg:       #f5f4f7;
+    --surface:  #ffffff;
+    --surface2: #f2f2f2;
+    --border:   #d6d6d6;
+    --border2:  #b8b8b8;
+    --text:     #333333;
+    --muted:    #6d6d6d;
+    --dim:      #b8b8b8;
+    --violet:   #57068C;
+    --violet-dk:#330662;
+    --violet-bg:#eee6f3;
+    --violet-md:#702b9d;
+
+    /* ── Category colors (accessible on white) ── */
+    --cat-req-bg:#ede9f7; --cat-req-bd:#57068C; --cat-req-tx:#330662; --cat-req-cd:#57068C;
+    --cat-gen-bg:#E6F1FB; --cat-gen-bd:#185FA5; --cat-gen-tx:#0C447C; --cat-gen-cd:#185FA5;
+    --cat-elc-bg:#FEF3E2; --cat-elc-bd:#C26B00; --cat-elc-tx:#6B3900; --cat-elc-cd:#A85A00;
+    --cat-fre-bg:#E4F5EE; --cat-fre-bd:#1A7A58; --cat-fre-tx:#0A4A34; --cat-fre-cd:#1A7A58;
+    --warn-bg:#FEF3E2; --warn-bd:#C26B00; --warn-tx:#6B3900;
+    --danger-bg:#FDECEA; --danger-bd:#C0392B; --danger-tx:#7B1D1D;
+    --radius: 2px;
+    --radius-sm: 2px;
+  }
+
+  html, body {
+    min-height: 100vh;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Barlow', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 15px;
+    line-height: 1.5;
+  }
+
+  /* ── FULL-BLEED VIOLET TOP BAR (NYU nav style) ── */
+  body::before {
+    content: '';
+    display: block;
+    height: 6px;
+    background: var(--nyu-violet-dk);
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 200;
+  }
+
+  #root { max-width: 1100px; margin: 0 auto; padding: 0 1.5rem 4rem; }
+
+  /* ── HEADER — full violet bar ── */
+  .hdr {
+    background: var(--nyu-violet);
+    margin: 0 -1.5rem 0;
+    padding: 0 1.5rem;
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    border-bottom: 4px solid var(--nyu-violet-dk);
+    margin-top: 6px; /* clear the top accent bar */
+  }
+  .hdr-brand {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 24px 14px 0;
+    border-right: 1px solid rgba(255,255,255,0.2);
+    margin-right: 24px;
+    text-decoration: none;
+  }
+  .hdr-torch {
+    flex-shrink: 0;
+    background: var(--nyu-white);
+    width: 36px; height: 36px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .hdr-wordmark { display: flex; flex-direction: column; }
+  .hdr-nyu {
+    font-family: 'Barlow Condensed', 'Barlow', sans-serif;
+    font-weight: 700; font-size: 22px; color: #fff;
+    letter-spacing: 1px; line-height: 1;
+  }
+  .hdr-school {
+    font-size: 10px; font-weight: 500; color: rgba(255,255,255,0.82);
+    letter-spacing: 0.08em; text-transform: uppercase; margin-top: 2px;
+  }
+  .hdr-divider { display: flex; align-items: center; }
+  .hdr-title-wrap { padding: 14px 0; }
+  .hdr-title { font-size: 14px; font-weight: 600; color: rgba(255,255,255,0.95); letter-spacing: 0.02em; }
+  .hdr-sub { font-size: 11px; color: rgba(255,255,255,0.65); margin-top: 1px; letter-spacing: 0.01em; }
+
+  /* ── BREADCRUMB / STEPS ── */
+  .steps-wrap {
+    background: var(--nyu-violet-dk);
+    margin: 0 -1.5rem 2rem;
+    padding: 0 1.5rem;
+  }
+  .steps {
+    display: flex; align-items: stretch; gap: 0;
+    flex-wrap: wrap;
+    height: 40px;
+  }
+  .step {
+    font-size: 12px; font-weight: 500; color: rgba(255,255,255,0.55);
+    padding: 0 16px; display: flex; align-items: center;
+    letter-spacing: 0.04em; text-transform: uppercase;
+    border-right: 1px solid rgba(255,255,255,0.12);
+    cursor: default;
+  }
+  .step:first-child { padding-left: 0; }
+  .step.done { color: rgba(255,255,255,0.72); }
+  .step.active {
+    color: #fff; font-weight: 700;
+    border-bottom: 3px solid #fff;
+    margin-bottom: -1px;
+  }
+  .step-sep { display: none; }
+
+  /* ── PAGE CHROME ── */
+  .page-rule {
+    height: 4px;
+    background: linear-gradient(90deg, var(--nyu-violet) 0%, var(--nyu-violet-md) 60%, var(--nyu-violet-lt1) 100%);
+    margin: 0 -1.5rem 2rem;
+  }
+
+  /* ── CARDS ── */
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; }
+  .card-sm { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.25rem; }
+  .surface { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 1rem 1.25rem; }
+
+  /* ── TYPOGRAPHY ── */
+  .label { display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--nyu-violet); margin-bottom: 6px; }
+  .muted { color: var(--muted); font-size: 13px; }
+  .mono { font-family: ui-monospace, 'SF Mono', 'Fira Code', monospace; }
+
+  h1, h2 { font-family: 'Barlow', sans-serif; letter-spacing: -0.2px; }
+
+  /* ── FORM ELEMENTS ── */
+  input[type=text], textarea, select {
+    width: 100%; background: var(--surface); border: 1px solid var(--border2);
+    border-radius: var(--radius-sm); color: var(--text); font-family: 'Barlow', inherit;
+    font-size: 14px; padding: 9px 12px; outline: none; transition: border-color .15s, box-shadow .15s;
+  }
+  input[type=text]:focus, textarea:focus, select:focus {
+    border-color: var(--violet);
+    box-shadow: 0 0 0 3px rgba(87,6,140,0.12);
+  }
+  textarea { resize: vertical; line-height: 1.6; }
+  select { appearance: none; cursor: pointer;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236d6d6d' stroke-width='2.5'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 10px center; padding-right: 32px;
+  }
+
+  /* ── BUTTONS ── */
+  .btn {
+    padding: 9px 20px; border-radius: var(--radius-sm); font-family: 'Barlow', inherit;
+    font-size: 14px; font-weight: 600; cursor: pointer;
+    border: 2px solid var(--border2); background: var(--surface); color: var(--text);
+    transition: all .15s; letter-spacing: 0.02em;
+  }
+  .btn:hover { background: var(--surface2); border-color: var(--violet); color: var(--violet); }
+  .btn:active { transform: scale(.98); }
+  .btn:focus-visible {
+    outline: 3px solid var(--nyu-violet);
+    outline-offset: 2px;
+  }
+  .drop-zone:focus-visible {
+    outline: 3px solid var(--nyu-violet);
+    outline-offset: 2px;
+    border-color: var(--nyu-violet);
+  }
+  .btn-primary {
+    background: var(--nyu-violet); color: #fff;
+    border-color: var(--nyu-violet);
+  }
+  .btn-primary:hover { background: var(--nyu-violet-dk); border-color: var(--nyu-violet-dk); color: #fff; }
+  .btn-primary:disabled { opacity: .4; cursor: not-allowed; }
+  .btn-ghost { border-color: rgba(255,255,255,0.4); color: rgba(255,255,255,0.85); background: transparent; }
+  .btn-ghost:hover { background: rgba(255,255,255,0.12); border-color: rgba(255,255,255,0.6); color: #fff; }
+  .btn-outline { border-color: var(--violet); color: var(--violet); background: transparent; }
+  .btn-outline:hover { background: var(--violet-bg); }
+  .btn-sm { padding: 5px 12px; font-size: 12px; }
+
+  /* ── LAYOUT HELPERS ── */
+  .row { display: flex; gap: 12px; }
+  .row > * { flex: 1; }
+  .field { margin-bottom: 18px; }
+  .btn-row { display: flex; gap: 10px; justify-content: flex-end; margin-top: 24px; }
+  .divider { border: none; border-top: 1px solid var(--border); margin: 1.25rem 0; }
+
+  /* ── SECTION HEADING with violet left rule ── */
+  .section-heading {
+    font-size: 20px; font-weight: 700; color: var(--text);
+    border-left: 4px solid var(--nyu-violet);
+    padding-left: 12px; margin-bottom: 8px;
+  }
+
+  /* ── UPLOAD ZONE ── */
+  .drop-zone {
+    border: 2px dashed var(--border2); border-radius: var(--radius);
+    padding: 3rem 2rem; text-align: center; cursor: pointer;
+    transition: all .15s; margin-bottom: 1.25rem; background: var(--surface);
+  }
+  .drop-zone:hover, .drop-zone.drag {
+    border-color: var(--violet); background: var(--violet-bg);
+  }
+  .drop-icon { font-size: 2.5rem; margin-bottom: 12px; }
+
+  /* ── MAJOR DROPDOWN ── */
+  .dd-wrap { position: relative; }
+  .dd-list {
+    position: absolute; top: calc(100% + 2px); left: 0; right: 0; z-index: 99;
+    background: var(--surface); border: 2px solid var(--violet);
+    border-radius: var(--radius); max-height: 280px; overflow-y: auto;
+    box-shadow: 0 8px 32px rgba(87,6,140,0.15);
+  }
+  .dd-item {
+    padding: 9px 14px; font-size: 13px; cursor: pointer;
+    display: flex; justify-content: space-between; align-items: center;
+    border-bottom: 1px solid var(--border);
+  }
+  .dd-item:last-child { border-bottom: none; }
+  .dd-item:hover { background: var(--violet-bg); color: var(--violet); }
+  .deg-badge {
+    font-family: ui-monospace,'SF Mono',monospace; font-size: 10px; font-weight: 700;
+    background: var(--nyu-violet); color: #fff;
+    border-radius: 2px; padding: 2px 7px;
+  }
+  .major-chosen {
+    background: var(--violet-bg); border: 2px solid var(--violet);
+    border-radius: var(--radius-sm); padding: 10px 14px;
+    display: flex; align-items: center; justify-content: space-between; cursor: pointer;
+  }
+  .major-chosen-name { font-weight: 600; color: var(--violet-dk); }
+
+  /* ── STAT CARDS ── */
+  .stats-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; margin-bottom: 1.75rem; }
+  .stat {
+    background: var(--surface); border: 1px solid var(--border);
+    border-top: 4px solid var(--nyu-violet);
+    border-radius: var(--radius-sm); padding: 1rem;
+  }
+  .stat-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin-bottom: 6px; }
+  .stat-val { font-size: 28px; font-weight: 700; color: var(--nyu-violet); line-height: 1; font-family: 'Barlow Condensed', 'Barlow', sans-serif; }
+  .stat-note { font-size: 11px; color: var(--muted); margin-top: 4px; }
+  .stat-warn { color: var(--warn-bd) !important; }
+
+  /* ── LEGEND ── */
+  .legend { display: flex; flex-wrap: wrap; gap: 14px; margin-bottom: 1.5rem; }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); }
+  .legend-dot { width: 12px; height: 12px; border-radius: 1px; flex-shrink: 0; }
+
+  /* ── SEMESTER GRID — handled inline in AcademicYearGrid component ── */
+  .sem-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+  .sem-hdr {
+    padding: 10px 14px;
+    background: var(--nyu-violet);
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .sem-name { font-weight: 700; font-size: 13px; color: #fff; text-transform: uppercase; letter-spacing: 0.05em; font-family: 'Barlow Condensed', 'Barlow', sans-serif; }
+  .sem-cr {
+    font-family: ui-monospace,'SF Mono',monospace; font-size: 11px;
+    color: rgba(255,255,255,0.9); background: rgba(255,255,255,0.18);
+    border: 1px solid rgba(255,255,255,0.3); border-radius: 2px; padding: 2px 8px; font-weight: 700;
+  }
+  .sem-body { padding: 10px; }
+
+  /* ── COURSE CHIPS ── */
+  .course { border-radius: 0; padding: 8px 10px; margin-bottom: 5px; border-left: 3px solid; }
+  .course:last-child { margin-bottom: 0; }
+  .course-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 2px; }
+  .course-code { font-family: ui-monospace,'SF Mono',monospace; font-size: 11px; font-weight: 700; }
+  .course-cr { font-family: ui-monospace,'SF Mono',monospace; font-size: 10px; border-radius: 2px; padding: 1px 5px; white-space: nowrap; font-weight: 700; }
+  .course-title { font-size: 12px; line-height: 1.4; }
+  .course-pre { font-size: 10px; color: var(--muted); font-style: italic; margin-top: 2px; }
+
+  /* ── WARN / INFO ── */
+  .warn-box { background: var(--warn-bg); border-left: 4px solid var(--warn-bd); border-radius: 0; padding: 1rem 1.25rem; margin-bottom: 1.25rem; }
+  .warn-title { font-weight: 700; color: var(--warn-tx); margin-bottom: 6px; font-size: 14px; }
+  .warn-body { color: var(--warn-tx); font-size: 13px; line-height: 1.6; }
+  .info-box {
+    background: var(--violet-bg); border-left: 4px solid var(--nyu-violet);
+    border-radius: 0; padding: 1rem 1.25rem; font-size: 13px; color: var(--violet-dk); line-height: 1.7;
+  }
+  .err { background: var(--danger-bg); border-left: 4px solid var(--danger-bd); color: var(--danger-tx); border-radius: 0; padding: 10px 14px; font-size: 13px; margin-bottom: 14px; }
+
+  /* ── UNPLACED CODES ── */
+  .code-pill { font-family: ui-monospace,'SF Mono',monospace; font-size: 11px; background: var(--surface2); border: 1px solid var(--border2); border-radius: 2px; padding: 2px 8px; display: inline-block; margin: 3px; }
+
+  /* ── PLAN HEADER ── */
+  .plan-hdr { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 14px; margin-bottom: 1.75rem; }
+  .plan-title { font-size: 24px; font-weight: 700; color: var(--nyu-violet-dk); letter-spacing: -0.3px; }
+  .plan-sub { font-size: 13px; color: var(--muted); margin-top: 4px; }
+
+  /* ── PRINT BUTTON override ── */
+  .btn-print { background: var(--nyu-violet) !important; color: #fff !important; border-color: var(--nyu-violet) !important; }
+  .btn-print:hover { background: var(--nyu-violet-dk) !important; border-color: var(--nyu-violet-dk) !important; }
+
+  /* ── LS CORE PATHWAY ── */
+  --ls-violet: #702b9d;
+  --ls-violet-bg: #f0e8f7;
+
+  .ls-badge { background: #702b9d; color: #fff; font-size: 10px; font-weight: 700; border-radius: 2px; padding: 2px 8px; }
+  .ls-row {
+    display: flex; align-items: center; gap: 14px; padding: 10px 14px;
+    background: #f8f4fc; border-left: 3px solid #702b9d;
+    border-bottom: 1px solid var(--border);
+  }
+  .ls-done-badge {
+    flex-shrink: 0; font-size: 11px; font-weight: 700;
+    color: #702b9d; background: rgba(112,43,157,0.12);
+    border: 1px solid #702b9d; border-radius: 2px; padding: 2px 8px;
+  }
+
+  @media (max-width: 640px) {
+    #root { padding: 0 1rem 3rem; }
+    .hdr { margin: 0 -1rem 0; padding: 0 1rem; }
+    .steps-wrap { margin: 0 -1rem 2rem; padding: 0 1rem; }
+    .page-rule { margin: 0 -1rem 2rem; }
+    .row { flex-direction: column; }
+    /* sem-year-grid uses inline styles driven by JS; override here */
+    .sem-year-grid { grid-template-columns: 1fr !important; }
+    .stats-grid { grid-template-columns: 1fr 1fr; }
+    .hdr-school { display: none; }
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel">
+const { useState, useEffect, useCallback, useMemo, useRef } = React;
+
+// ─── LIBERAL STUDIES CORE → CAS INTEGRATION ─────────────────────────────────
+// Source: cas.nyu.edu LS-to-CAS articulation + CAS Core Curriculum bulletin.
+// These CAS gen_ed course_codes are satisfied by completing the LS Core curriculum.
+
+const LS_SATISFIED_GENEDS = new Set([
+  'EXPOS-UA 1',         // WREX-UF 101 + WRCI-UF 102 with grade ≥ C
+  'CORE-TEXTS',         // ACA-UF 101 + ACC-UF 102
+  'CORE-CULTURES',      // Full LS sequences (ACA+ACC+ACM+GWA+GWC+GWM) or Global Cultures substitution
+  'CORE-EXPRESSIVE',    // ACA-UF 101 + ACC-UF 102 + ACM-UF 201
+  'CORE-PHYSICAL-SCI',  // First LS natural science (SCTEC-UF 101 or HOU-UF 101)
+  'CORE-LIFE-SCI',      // Second LS natural science (ENSTU-UF 101 or LISCI-UF 101)
+  'CORE-SOC-SCI',       // GWA-UF 101 + GWC-UF 102 (+ Modernity/Global Cultures)
+  // NOT satisfied: FIRST-YEAR-SEMINAR — confirm with CAS advisor (LS students arrive as juniors)
+  // NOT satisfied: LANG-LEVEL-1..4 — foreign language still required in full
+  // NOT satisfied: CORE-QUANT — MATH-UA 121/9 or AP exam; check with advisor
+]);
+
+const LS_CORE_CREDITS = 64; // standard LS Core credit total (64–68 cr; 64 is most common)
+
+const LS_CORE_SUMMARY = [
+  {
+    code: 'WREX-UF 101 + WRCI-UF 102',
+    desc: 'Writing as Exploration + Writing as Critical Inquiry',
+    satisfies: 'Satisfies Writing Requirement (EXPOS-UA 1)',
+    cr: 8,
+  },
+  {
+    code: 'ACA-UF 101 / ACC-UF 102 / ACM-UF 201',
+    desc: 'Arts & Cultures across Antiquity → Crossroads → Modernity',
+    satisfies: 'Satisfies Texts & Ideas + Expressive Culture',
+    cr: 12,
+  },
+  {
+    code: 'GWA-UF 101 / GWC-UF 102 / GWM-UF 201',
+    desc: 'Global Works & Society: Antiquity → Changing World → Modernity',
+    satisfies: 'Satisfies Cultures & Contexts + Societies & Social Sciences',
+    cr: 12,
+  },
+  {
+    code: 'LS Natural Sciences (2 courses)',
+    desc: 'e.g. ENSTU-UF 101, LISCI-UF 101, SCTEC-UF 101, HOU-UF 101',
+    satisfies: 'Satisfies Physical Science + Life Science',
+    cr: 8,
+  },
+  {
+    code: 'LS Electives (6 courses)',
+    desc: 'Language courses, major prereqs, and Liberal Studies electives',
+    satisfies: 'Contributes to 128 cr total · non-UA credits',
+    cr: 24,
+  },
+];
+
+// ─── PLANNING ENGINE ──────────────────────────────────────────────────────────
+
+const IS_PLACEHOLDER = /ELECTIVE|FREE-|CORE-|LANG-LEVEL|FIRST-YEAR|HIST-GEO|CAS-MINOR|BIOCHEM-ELECTIVE|IR-ELECTIVE|POL-UA-IR/;
+const isPlaceholder = c => IS_PLACEHOLDER.test(c);
+const getDept = c => (c.match(/^[A-Z]+-[A-Z]+/) || [''])[0];
+const CAT_PRI  = { core_required:0, supporting_required:1, gen_ed:2, major_elective:3 };
+
+// Canonical OR/AND prereq logic used by both the scheduler and the drag engine.
+// Prereqs within the same top-level dept prefix (e.g. all MATH-UA) are OR-linked
+// (any one satisfies). Mixed-dept lists are AND-linked (all required).
+function evalPrereqs(str, doneFn) {
+  if (!str || str==='None' || str==='none' || !str.trim()) return true;
+  const parts = str.split('|').map(s=>s.trim().toUpperCase()).filter(Boolean);
+  if (!parts.length) return true;
+  if (parts.length===1) return doneFn(parts[0]);
+  const depts = parts.map(getDept);
+  const allSame = depts[0] && depts.every(d=>d===depts[0]);
+  return allSame
+    ? parts.some(p=>doneFn(p))
+    : parts.every(p=>doneFn(p));
+}
+
+function prereqOk(str, done) {
+  return evalPrereqs(str, p => done.has(p));
+}
+
+function offeredIn(offered, semType) {
+  if (!offered||offered==='both'||offered==='varies') return true;
+  return offered===semType;
+}
+
+function resolveGroups(courses) {
+  const groups = {};
+  for (const c of courses) {
+    const g=(c.req_group||'').trim();
+    if (g) {
+      if (!groups[g]) groups[g]={pick:parseInt(c.req_group_pick)||1,added:0};
+      groups[g].opts = groups[g].opts || [];
+      groups[g].opts.push(c);
+    }
+  }
+  const seen=new Set(), out=[];
+  for (const c of courses) {
+    const g=(c.req_group||'').trim();
+    if (!g) { if(!seen.has(c.course_code)){out.push(c);seen.add(c.course_code);} continue; }
+    const grp=groups[g];
+    if (grp&&grp.added<grp.pick&&!seen.has(c.course_code)){
+      out.push(c);seen.add(c.course_code);grp.added++;
+    }
+  }
+  return out;
+}
+
+function buildSems(gradSem, gradYear) {
+  const lastType = gradSem==='January'?'fall':gradSem==='May'?'spring':'fall';
+  const lastYear = gradSem==='January'?gradYear-1:gradYear;
+  const sems=[];
+  // Derive start semester from today's date so the planner stays current.
+  // May–Dec (month >= 4): plan from upcoming Fall of the current year.
+  // Jan–Apr (month < 4): plan from current Spring.
+  const now      = new Date();
+  const nowMonth = now.getMonth(); // 0-indexed
+  let   calYear  = now.getFullYear();
+  let   isFall   = nowMonth >= 4;  // May and later → open with Fall
+  for (let i=0;i<20;i++) {
+    const type=isFall?'fall':'spring';
+    // calYear is already the correct display year for both fall and spring
+    sems.push({term:`${isFall?'Fall':'Spring'} ${calYear}`, type, year:calYear});
+    if (type===lastType&&calYear===lastYear) break;
+    if (isFall) { calYear++; isFall=false; } // Fall 2026 → Spring 2027
+    else        { isFall=true; }             // Spring 2027 → Fall 2027
+  }
+  return sems;
+}
+
+function extractCodes(text) {
+  return new Set((text.toUpperCase().match(/[A-Z]{2,8}-[A-Z]{2}\s+\d+[A-Z]*/g)||[]).map(s=>s.trim()));
+}
+
+const IS_LANG = /^LANG-LEVEL-\d/;
+const isLang = c => IS_LANG.test(c);
+
+// Build a prereq lookup from ALL rows (not just one major) so cross-dept
+// prerequisites (e.g. CSCI-UA 101 → CSCI-UA 2) can be resolved too.
+function buildPrereqMap(rows) {
+  const map={};
+  for (const r of rows) {
+    const code=r.course_code.toUpperCase();
+    if (!map[code]&&r.prereqs&&r.prereqs!=='None'&&r.prereqs!=='none') {
+      map[code]=r.prereqs.split('|').map(s=>s.trim().toUpperCase()).filter(Boolean);
+    }
+  }
+  return map;
+}
+
+// Recursively mark a course's prerequisites as satisfied in `done`.
+function satisfyPrereqs(code, prereqMap, done, depth=0) {
+  if (depth>10) return; // guard against cycles
+  const prereqs=prereqMap[code.toUpperCase()]||[];
+  for (const p of prereqs) {
+    if (!done.has(p)) {
+      done.add(p);
+      satisfyPrereqs(p, prereqMap, done, depth+1);
+    }
+  }
+}
+
+function generatePlan(rows, slug, minorSlug, trackSlug, completedSet, gradSem, gradYear, isLSPath=false) {
+  const major=rows.filter(r=>r.major_slug===slug);
+  if (!major.length) return null;
+
+  const prereqMap=buildPrereqMap(rows);
+  const done=new Set([...completedSet].map(c=>c.toUpperCase()));
+  for (const code of [...completedSet]) satisfyPrereqs(code.toUpperCase(), prereqMap, done);
+
+  // ── Liberal Studies Core pathway: pre-satisfy waived CAS gen_ed requirements ──
+  if (isLSPath) {
+    for (const code of LS_SATISFIED_GENEDS) done.add(code.toUpperCase());
+  }
+
+  // Merge courses from major + optional minor + optional track
+  // Deduplicate by course_code so overlapping requirements are scheduled once
+  const seenCodes=new Set();
+  const addCourses=(sourceRows, tag)=>{
+    const resolved=resolveGroups(sourceRows);
+    return resolved
+      .filter(c=>!done.has(c.course_code.toUpperCase()))
+      .filter(c=>{
+        if(seenCodes.has(c.course_code.toUpperCase())) return false;
+        seenCodes.add(c.course_code.toUpperCase());
+        return true;
+      })
+      .map(c=>({...c,_source:tag}));
+  };
+
+  const majorCourses  = addCourses(major, 'major');
+  const minorCourses  = minorSlug  ? addCourses(rows.filter(r=>r.major_slug===minorSlug),  'minor') : [];
+  const trackCourses  = trackSlug  ? addCourses(rows.filter(r=>r.major_slug===trackSlug),  'track') : [];
+
+  // Priority: core major reqs first, then track (pre-med is time-sensitive), then minor
+  const courses=[...majorCourses,...trackCourses,...minorCourses];
+
+  const sems=buildSems(gradSem,gradYear);
+  const placed=new Set(), result=[];
+  const freeElective={course_code:'FREE-ELECTIVE-PAD',course_title:'Free Elective',credits:'4',category:'major_elective',prereqs:'',offered:'both'};
+
+  for (const [semIdx,sem] of sems.entries()) {
+    let langThisSem=false;
+    const avail=courses.filter(c=>{
+      if (placed.has(c.course_code)) return false;
+      if (!offeredIn(c.offered,sem.type)) return false;
+      if (!isPlaceholder(c.course_code)&&!prereqOk(c.prereqs,done)) return false;
+      return true;
+    }).sort((a,b)=>(CAT_PRI[a.category]??9)-(CAT_PRI[b.category]??9));
+
+    const semCourses=[]; let credits=0, genEdThisSem=0;
+    const GEN_ED_MAX=2;
+    const DEPT_MAX=2;
+    const deptCount={};
+    const courseNum=code=>{const m=code.match(/(\d+)/);return m?parseInt(m[1]):0;};
+    const isUpperDiv=c=>
+      !isPlaceholder(c.course_code)&&
+      courseNum(c.course_code)>=300&&
+      c.prereqs&&c.prereqs.trim()&&c.prereqs!=='None'&&c.prereqs!=='none';
+
+    // Pre-pass: guarantee ≥1 gen ed per semester
+    const genEdAvail=avail.filter(c=>c.category==='gen_ed'&&!(semIdx<4&&isUpperDiv(c)));
+    if (genEdAvail.length>0) {
+      const g=genEdAvail[0]; const cr=parseInt(g.credits)||4;
+      semCourses.push(g); credits+=cr; genEdThisSem++;
+      done.add(g.course_code.toUpperCase()); placed.add(g.course_code);
+      const dept=getDept(g.course_code);
+      if (dept) deptCount[dept]=(deptCount[dept]||0)+1;
+      langThisSem=langThisSem||isLang(g.course_code);
+    }
+
+    for (const c of avail) {
+      if (credits>=16) break;
+      if (placed.has(c.course_code)) continue;
+      const cr=parseInt(c.credits)||4;
+      if (credits+cr>18) continue;
+      if (semIdx<4&&isUpperDiv(c)) continue;
+      if (isLang(c.course_code)) { if(langThisSem) continue; langThisSem=true; }
+      if (c.category==='gen_ed') { if(genEdThisSem>=GEN_ED_MAX) continue; genEdThisSem++; }
+      if (!isPlaceholder(c.course_code)) {
+        const dept=getDept(c.course_code);
+        if (dept) { const n=deptCount[dept]||0; if(n>=DEPT_MAX) continue; deptCount[dept]=n+1; }
+      }
+      semCourses.push(c); credits+=cr;
+      done.add(c.course_code.toUpperCase()); placed.add(c.course_code);
+    }
+
+    while (credits>0&&credits<12) {
+      semCourses.push({...freeElective,course_code:`FREE-ELECTIVE-PAD-${credits}`});
+      credits+=4;
+    }
+    result.push({...sem,courses:semCourses,credits});
+  }
+
+  const unplaced=courses.filter(c=>!placed.has(c.course_code));
+  const allRows=[...major,...(minorSlug?rows.filter(r=>r.major_slug===minorSlug):[]),...(trackSlug?rows.filter(r=>r.major_slug===trackSlug):[])];
+  const completedCr=[...completedSet].reduce((s,code)=>{
+    const r=allRows.find(r=>r.course_code.toUpperCase()===code.toUpperCase());
+    return s+(parseInt(r?.credits)||4);
+  },0);
+  const plannedCr=result.reduce((s,sem)=>s+sem.credits,0);
+  const casPlanned=result.flatMap(s=>s.courses).filter(c=>c.course_code.includes('-UA')).reduce((s,c)=>s+(parseInt(c.credits)||4),0);
+  const casCompleted=[...completedSet].reduce((s,code)=>{
+    if (!code.toUpperCase().includes('-UA')) return s;
+    const r=allRows.find(r=>r.course_code.toUpperCase()===code.toUpperCase());
+    return s+(parseInt(r?.credits)||4);
+  },0);
+
+  const lsCredits     = isLSPath ? LS_CORE_CREDITS : 0;
+  return {
+    sems:result, unplaced, completedCr:completedCr+lsCredits, lsCredits,
+    plannedCr,
+    total:completedCr+lsCredits+plannedCr,
+    cas:casCompleted+casPlanned,
+    casCompleted,   // exposed separately so PlanScreen can compute reactive total
+    meetsCAS:(casCompleted+casPlanned)>=64,
+    meetsTotal:(completedCr+lsCredits+plannedCr)>=128,
+    majorName:major[0].major_name,
+    degree:major[0].degree,
+    hasMinor:!!minorSlug,
+    hasTrack:!!trackSlug,
+    isLSPath,
+  };
+}
+
+// ─── CATEGORY STYLES ──────────────────────────────────────────────────────────
+
+const CAT = {
+  core_required:      {bg:'var(--cat-req-bg)',bd:'var(--cat-req-bd)',tx:'var(--cat-req-tx)',cd:'var(--cat-req-cd)',label:'Required'},
+  supporting_required:{bg:'var(--cat-req-bg)',bd:'var(--cat-req-bd)',tx:'var(--cat-req-tx)',cd:'var(--cat-req-cd)',label:'Supporting'},
+  gen_ed:             {bg:'var(--cat-gen-bg)',bd:'var(--cat-gen-bd)',tx:'var(--cat-gen-tx)',cd:'var(--cat-gen-cd)',label:'Gen Ed'},
+  major_elective:     {bg:'var(--cat-elc-bg)',bd:'var(--cat-elc-bd)',tx:'var(--cat-elc-tx)',cd:'var(--cat-elc-cd)',label:'Elective'},
+};
+const FREE={bg:'var(--cat-fre-bg)',bd:'var(--cat-fre-bd)',tx:'var(--cat-fre-tx)',cd:'var(--cat-fre-cd)',label:'Free slot'};
+const getC=c=>CAT[c]||FREE;
+
+// ─── COMPONENTS ───────────────────────────────────────────────────────────────
+
+function Header() {
+  return (
+    <div className="hdr">
+      <div className="hdr-brand">
+        {/* NYU torch-in-square logomark */}
+        <div className="hdr-torch">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect width="24" height="24" fill="#57068C"/>
+            {/* Torch flame */}
+            <path d="M12 3 C10.5 5 9.5 6.5 10 8 C10.3 9 11 9.5 11.5 10.5 C11 9.8 10.2 9 10.5 7.5 C11 6 12 5 12 3Z" fill="white" opacity="0.9"/>
+            <path d="M12 3 C13.5 5 14.5 6.5 14 8 C13.7 9 13 9.5 12.5 10.5 C13 9.8 13.8 9 13.5 7.5 C13 6 12 5 12 3Z" fill="white" opacity="0.7"/>
+            {/* Torch body */}
+            <rect x="11" y="10" width="2" height="8" fill="white"/>
+            {/* Torch handle/base */}
+            <rect x="9.5" y="17.5" width="5" height="1.2" rx="0.4" fill="white"/>
+            <rect x="10.2" y="18.7" width="3.6" height="1" rx="0.3" fill="white"/>
+          </svg>
+        </div>
+        <div className="hdr-wordmark">
+          <div className="hdr-nyu">NYU</div>
+          <div className="hdr-school">College of Arts &amp; Science</div>
+        </div>
+      </div>
+      <div className="hdr-title-wrap">
+        <div className="hdr-title">Degree Planner</div>
+        <div className="hdr-sub">2025–26 Bulletin · Offline · All 61 CAS Majors</div>
+      </div>
+    </div>
+  );
+}
+
+function Steps({step}) {
+  const STEPS=[['load','1. Load Data'],['setup','2. Your Major'],['courses','3. Past Courses'],['plan','4. Degree Plan']];
+  const idx=STEPS.findIndex(s=>s[0]===step);
+  return (
+    <div className="steps-wrap">
+      <div className="steps">
+        {STEPS.map(([key,label],i)=>(
+          <span key={key} className={`step${i===idx?' active':i<idx?' done':''}`}>
+            {i<idx?'✓ ':''}{label}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function UploadScreen({onLoad}) {
+  const [drag,setDrag]=useState(false);
+  const [err,setErr]=useState('');
+  const ref=useRef();
+
+  const parse=file=>{
+    if (!file||!file.name.endsWith('.csv')){setErr('Please upload the nyu_cas_curriculum.csv file.');return;}
+    Papa.parse(file,{
+      header:true,skipEmptyLines:true,
+      complete:r=>{
+        if(r.data?.length){onLoad(r.data);}
+        else setErr('CSV appears empty or malformed.');
+      },
+      error:e=>setErr(e.message),
+    });
+  };
+
+  return (
+    <div style={{maxWidth:540}}>
+      <h1 className="section-heading" style={{marginBottom:8}}>Plan your NYU degree</h1>
+      <p className="muted" style={{marginBottom:28,lineHeight:1.7}}>
+        Upload the <code className="mono" style={{fontSize:12,background:'var(--surface2)',padding:'1px 6px',borderRadius:4}}>nyu_cas_curriculum.csv</code> you generated from this chat. All 61 CAS majors, 2,007 course rows, completely offline — no account or API key needed.
+      </p>
+
+      <div
+        className={`drop-zone${drag?' drag':''}`}
+        role="button"
+        tabIndex={0}
+        aria-label="Upload nyu_cas_curriculum.csv — click or press Enter to browse"
+        onDragOver={e=>{e.preventDefault();setDrag(true);}}
+        onDragLeave={()=>setDrag(false)}
+        onDrop={e=>{e.preventDefault();setDrag(false);parse(e.dataTransfer.files[0]);}}
+        onClick={()=>ref.current?.click()}
+        onKeyDown={e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();ref.current?.click();}}}
+      >
+        <div className="drop-icon">📂</div>
+        <p style={{fontWeight:600,marginBottom:4}}>Drop nyu_cas_curriculum.csv here</p>
+        <p className="muted" style={{fontSize:13}}>or click to browse your files</p>
+        <input ref={ref} type="file" accept=".csv" style={{display:'none'}} onChange={e=>parse(e.target.files[0])} />
+      </div>
+
+      {err&&<div className="err">{err}</div>}
+
+      <div className="info-box">
+        <strong style={{fontWeight:700,color:'var(--nyu-violet-dk)'}}>First time?</strong> Download the CSV first using the link above this message, then upload it here. Once loaded, it's saved in your browser and you won't need to upload it again.
+      </div>
+    </div>
+  );
+}
+
+function SetupScreen({rows,majors,major,setMajor,track,setTrack,minor,setMinor,lsPath,setLsPath,gradSem,setGradSem,gradYear,setGradYear,onNext,onReset,resetCompleted}) {
+  const [q,setQ]=useState(major?.name||'');
+  const [open,setOpen]=useState(false);
+  const [mq,setMq]=useState(minor?.name||'');
+  const [mopen,setMopen]=useState(false);
+  const ddRef=useRef(); const mdRef=useRef();
+
+  const filtered=useMemo(()=>
+    majors.filter(m=>`${m.name} ${m.degree}`.toLowerCase().includes(q.toLowerCase())).slice(0,45),[majors,q]);
+
+  // Build minor list from CSV rows where track_type='minor'
+  const minors=useMemo(()=>{
+    if(!rows)return[];
+    const seen=new Set();
+    return rows.filter(r=>r.track_type==='minor'&&!seen.has(r.major_slug)&&seen.add(r.major_slug))
+      .map(r=>({slug:r.major_slug,name:r.major_name}))
+      .sort((a,b)=>a.name.localeCompare(b.name));
+  },[rows]);
+
+  const filteredMinors=useMemo(()=>
+    minors.filter(m=>m.name.toLowerCase().includes(mq.toLowerCase())).slice(0,30),[minors,mq]);
+
+  const select=m=>{setMajor(m);setQ(m.name);setOpen(false);resetCompleted();};
+  const clear=()=>{setMajor(null);setQ('');setOpen(false);resetCompleted();};
+  const selectMinor=m=>{setMinor(m);setMq(m.name);setMopen(false);};
+  const clearMinor=()=>{setMinor(null);setMq('');setMopen(false);};
+
+  useEffect(()=>{
+    const h=e=>{
+      if(ddRef.current&&!ddRef.current.contains(e.target))setOpen(false);
+      if(mdRef.current&&!mdRef.current.contains(e.target))setMopen(false);
+    };
+    document.addEventListener('mousedown',h);
+    return ()=>document.removeEventListener('mousedown',h);
+  },[]);
+
+  const years=Array.from({length:8},(_,i)=>2026+i);
+
+  const TRACKS=[
+    {id:null,  label:'None',     desc:'Standard degree only'},
+    {id:'pre-med-track', label:'Pre-Med', desc:'MCAT science requirements + recommended courses'},
+    {id:'pre-law-track', label:'Pre-Law', desc:'LSAT-skills coursework recommended by NYU CAS Prelaw'},
+  ];
+
+  return (
+    <div style={{maxWidth:540}}>
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:22}}>
+        <h2 className="section-heading">Set up your plan</h2>
+        <button className="btn btn-outline btn-sm" onClick={onReset}>⟵ Change CSV</button>
+      </div>
+
+      {/* MAJOR */}
+      <div className="field">
+        <label className="label">Your major</label>
+        <div className="dd-wrap" ref={ddRef}>
+          {major ? (
+            <div className="major-chosen" onClick={clear}>
+              <span style={{fontWeight:600}}>{major.name}</span>
+              <span className="muted" style={{fontSize:12}}>{major.degree} · change ×</span>
+            </div>
+          ):(
+            <>
+              <input type="text" value={q}
+                onChange={e=>{setQ(e.target.value);setOpen(true);}}
+                onFocus={()=>setOpen(true)}
+                placeholder="Search majors — e.g. Computer Science, Economics…"
+              />
+              {open&&filtered.length>0&&(
+                <div className="dd-list">
+                  {filtered.map(m=>(
+                    <div key={m.slug} className="dd-item" onMouseDown={()=>select(m)}>
+                      <span>{m.name}</span>
+                      <span className="deg-badge">{m.degree}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      </div>
+
+      {/* PRE-PROFESSIONAL TRACK */}
+      <div className="field">
+        <label className="label">Pre-Professional Track <span style={{fontWeight:400,textTransform:'none',letterSpacing:0,color:'var(--dim)'}}>— optional</span></label>
+        <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
+          {TRACKS.map(t=>(
+            <div key={String(t.id)} onClick={()=>setTrack(t.id)} style={{
+              flex:1, minWidth:120, padding:'10px 12px', cursor:'pointer', borderRadius:2,
+              border:`2px solid ${track===t.id?'var(--nyu-violet)':'var(--border)'}`,
+              background: track===t.id?'var(--violet-bg)':'var(--surface)',
+              transition:'all .12s',
+            }}>
+              <div style={{fontWeight:700,fontSize:13,color:track===t.id?'var(--nyu-violet-dk)':'var(--text)'}}>{t.label}</div>
+              <div style={{fontSize:11,color:'var(--muted)',marginTop:2,lineHeight:1.4}}>{t.desc}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* ENTRY PATHWAY (LS Core transfer) */}
+      <div className="field">
+        <label className="label">
+          Entry Pathway
+          <span style={{fontWeight:400,textTransform:'none',letterSpacing:0,color:'var(--dim)',marginLeft:6}}>— how did you arrive at CAS?</span>
+        </label>
+        <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
+          {[
+            {id:false, label:'Direct CAS',      desc:'Started at NYU CAS or equivalent external transfer'},
+            {id:true,  label:'LS Core → CAS',   desc:'Completed NYU Liberal Studies Core — transitioning as a junior'},
+          ].map(opt=>(
+            <div key={String(opt.id)} onClick={()=>setLsPath(opt.id)} style={{
+              flex:1, minWidth:140, padding:'10px 12px', cursor:'pointer', borderRadius:2,
+              border:`2px solid ${lsPath===opt.id?'var(--nyu-violet)':'var(--border)'}`,
+              background: lsPath===opt.id?'var(--violet-bg)':'var(--surface)',
+              transition:'all .12s',
+            }}>
+              <div style={{fontWeight:700,fontSize:13,color:lsPath===opt.id?'var(--nyu-violet-dk)':'var(--text)'}}>{opt.label}</div>
+              <div style={{fontSize:11,color:'var(--muted)',marginTop:2,lineHeight:1.4}}>{opt.desc}</div>
+            </div>
+          ))}
+        </div>
+        {lsPath&&(
+          <div style={{marginTop:8,padding:'10px 14px',background:'var(--violet-bg)',border:'1px solid var(--violet)',borderRadius:2,fontSize:12,color:'var(--nyu-violet-dk)',lineHeight:1.65}}>
+            <strong style={{fontWeight:700}}>LS Core counts as 64 credits</strong> and satisfies most CAS Core gen‑ed requirements (Writing, Texts &amp; Ideas, Cultures &amp; Contexts, Expressive Culture, both Science requirements, and Societies &amp; Social Sciences). <br/>
+            <span style={{color:'var(--muted)'}}>Not auto‑satisfied: <strong>Foreign Language</strong> (all 4 levels unless placed out) and <strong>First-Year Seminar</strong> — confirm FYS status with your CAS advisor.</span>
+          </div>
+        )}
+      </div>
+
+      {/* MINOR */}
+      <div className="field">
+        <label className="label">Minor <span style={{fontWeight:400,textTransform:'none',letterSpacing:0,color:'var(--dim)'}}>— optional</span></label>
+        <div className="dd-wrap" ref={mdRef}>
+          {minor ? (
+            <div className="major-chosen" onClick={clearMinor}>
+              <span style={{fontWeight:600}}>{minor.name}</span>
+              <span className="muted" style={{fontSize:12}}>Minor · change ×</span>
+            </div>
+          ):(
+            <>
+              <input type="text" value={mq}
+                onChange={e=>{setMq(e.target.value);setMopen(true);}}
+                onFocus={()=>setMopen(true)}
+                placeholder="Search minors — e.g. Psychology, Data Science…"
+              />
+              {mopen&&filteredMinors.length>0&&(
+                <div className="dd-list">
+                  {filteredMinors.map(m=>(
+                    <div key={m.slug} className="dd-item" onMouseDown={()=>selectMinor(m)}>
+                      <span>{m.name}</span>
+                      <span className="deg-badge">Minor</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      </div>
+
+      {/* GRADUATION */}
+      <div className="field">
+        <label className="label">Target graduation</label>
+        <div className="row">
+          <select aria-label="Graduation semester" value={gradSem} onChange={e=>setGradSem(e.target.value)}>
+            {['January','May','September'].map(s=><option key={s}>{s}</option>)}
+          </select>
+          <select aria-label="Graduation year" value={gradYear} onChange={e=>setGradYear(parseInt(e.target.value))}>
+            {years.map(y=><option key={y}>{y}</option>)}
+          </select>
+        </div>
+      </div>
+
+      <div className="btn-row" style={{justifyContent:'flex-end'}}>
+        <button className="btn btn-primary" onClick={onNext} disabled={!major}>
+          Continue →
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// Human-readable display names for placeholder gen-ed / core requirement codes
+const PLACEHOLDER_DISPLAY = {
+  'FIRST-YEAR-SEMINAR':  'First-Year Seminar',
+  'EXPOS-UA 1':          'Writing as Inquiry (EXPOS-UA 1)',
+  'LANG-LEVEL-1':        'Foreign Language I',
+  'LANG-LEVEL-2':        'Foreign Language II',
+  'LANG-LEVEL-3':        'Foreign Language III',
+  'LANG-LEVEL-4':        'Foreign Language IV (Intermediate)',
+  'CORE-TEXTS':          'Texts and Ideas',
+  'CORE-CULTURES':       'Cultures and Contexts',
+  'CORE-EXPRESSIVE':     'Expressive Culture',
+  'CORE-PHYSICAL-SCI':   'Physical Science',
+  'CORE-LIFE-SCI':       'Life Science',
+  'CORE-SOC-SCI':        'Societies and the Social Sciences',
+  'CORE-QUANT':          'Quantitative Reasoning',
+};
+
+// Returns a friendly display code/title for any course row
+const displayCode  = c => PLACEHOLDER_DISPLAY[c.course_code] ? '— Core Req —' : c.course_code;
+const displayTitle = c => PLACEHOLDER_DISPLAY[c.course_code] || c.course_title;
+
+// Elective-slot placeholders the user can't meaningfully toggle (scheduling fills these)
+const isElectiveSlot = code => /FREE-ELECTIVE|ELECTIVE-\d|CAS-MINOR|HIST-GEO|POL-UA-IR|GPH|GPHSCI/.test(code);
+
+const CAT_ORDER = ['core_required','supporting_required','gen_ed','major_elective'];
+const CAT_LABEL = {
+  core_required:      'Major Requirements',
+  supporting_required:'Supporting Requirements',
+  gen_ed:             'General Education / Core',
+  major_elective:     'Electives',
+};
+
+const SOURCE_META = {
+  major:   { label: (name,deg) => `${name} (${deg}) — Major Requirements`, color: 'var(--nyu-violet)' },
+  minor:   { label: (name)    => `${name} — Minor`,                         color: '#185FA5' },
+  pre_med: { label: ()        => 'Pre-Medical Track',                        color: '#1A7A58' },
+  pre_law: { label: ()        => 'Pre-Law Track (Recommended)',               color: '#854F0B' },
+};
+
+function CoursesScreen({rows,major,track,minor,lsPath,completed,setCompleted,onNext,onBack}) {
+  // Gather all course sources: major + optional minor + optional track
+  // Returns [{source, sourceLabel, sourceColor, courses:[]}]
+  const groups = useMemo(()=>{
+    if(!rows||!major) return [];
+    const majorCodes = new Set(
+      rows.filter(r=>r.major_slug===major.slug).map(r=>r.course_code.toUpperCase())
+    );
+
+    const buildGroup = (slug, sourceKey) => {
+      const seen=new Set();
+      const courses = rows
+        .filter(r=>r.major_slug===slug)
+        .filter(r=>!isElectiveSlot(r.course_code))
+        .filter(r=>{if(seen.has(r.course_code))return false;seen.add(r.course_code);return true;});
+      return courses;
+    };
+
+    const result=[];
+
+    // 1. Major
+    const majorCourses=buildGroup(major.slug,'major');
+    const sm=SOURCE_META.major;
+    result.push({source:'major',label:sm.label(major.name,major.degree),color:sm.color,courses:majorCourses});
+
+    // 2. Minor (if selected)
+    if(minor){
+      const minorCourses=buildGroup(minor.slug,'minor')
+        .map(c=>({...c,coveredByMajor:majorCodes.has(c.course_code.toUpperCase())}));
+      result.push({source:'minor',label:SOURCE_META.minor.label(minor.name),color:SOURCE_META.minor.color,courses:minorCourses});
+    }
+
+    // 3. Track (if selected)
+    if(track){
+      const tKey=track==='pre-med-track'?'pre_med':'pre_law';
+      const trackCourses=buildGroup(track,tKey)
+        .map(c=>({...c,coveredByMajor:majorCodes.has(c.course_code.toUpperCase())}));
+      result.push({source:tKey,label:SOURCE_META[tKey].label(),color:SOURCE_META[tKey].color,courses:trackCourses});
+    }
+    return result;
+  },[rows,major,track,minor]);
+
+  const toggle=code=>{
+    // LS-satisfied gen_ed codes cannot be manually toggled — they're pre-satisfied
+    if (lsPath && LS_SATISFIED_GENEDS.has(code)) return;
+    setCompleted(prev=>{const n=new Set(prev);n.has(code)?n.delete(code):n.add(code);return n;});
+  };
+  const selectAllGroup=courses=>setCompleted(prev=>{const n=new Set(prev);courses.forEach(c=>n.add(c.course_code));return n;});
+  const deselectAllGroup=courses=>setCompleted(prev=>{const n=new Set(prev);courses.forEach(c=>n.delete(c.course_code));return n;});
+
+  const totalCourses=groups.reduce((s,g)=>s+g.courses.length,0);
+  const doneCount=groups.reduce((s,g)=>s+g.courses.filter(c=>completed.has(c.course_code)).length,0);
+
+  return (
+    <div style={{maxWidth:720}}>
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',flexWrap:'wrap',gap:12,marginBottom:16}}>
+        <div>
+          <h2 className="section-heading" style={{marginBottom:4}}>Courses you've already completed</h2>
+          <p className="muted" style={{lineHeight:1.6}}>Toggle on any requirement you've already fulfilled. Courses marked <em>"Covered by Major"</em> count for both.</p>
+        </div>
+        <div style={{background:'var(--nyu-violet)',color:'#fff',borderRadius:2,padding:'8px 16px',textAlign:'center',flexShrink:0}}>
+          <div style={{fontFamily:"'Barlow Condensed','Barlow',sans-serif",fontSize:24,fontWeight:700,lineHeight:1}}>{doneCount}</div>
+          <div style={{fontSize:11,opacity:.85,marginTop:2}}>of {totalCourses} fulfilled</div>
+        </div>
+      </div>
+
+      {/* ── LS CORE TRANSFER BLOCK ── */}
+      {lsPath&&(
+        <div style={{marginBottom:24}}>
+          {/* Section header */}
+          <div style={{
+            display:'flex',alignItems:'center',justifyContent:'space-between',
+            background:'#702b9d',color:'#fff',padding:'8px 14px',marginBottom:1,
+          }}>
+            <div style={{fontFamily:"'Barlow Condensed','Barlow',sans-serif",fontWeight:700,fontSize:13,letterSpacing:'.05em',textTransform:'uppercase'}}>
+              Liberal Studies Core — Transferred Credits
+              <span style={{fontWeight:400,fontSize:11,opacity:.7,marginLeft:10}}>64 cr · auto-satisfied</span>
+            </div>
+            <div style={{fontSize:10,fontWeight:700,background:'rgba(255,255,255,0.2)',border:'1px solid rgba(255,255,255,0.35)',color:'#fff',borderRadius:2,padding:'2px 10px'}}>
+              {LS_CORE_CREDITS} cr
+            </div>
+          </div>
+          {/* Individual LS course blocks */}
+          {LS_CORE_SUMMARY.map((item,i)=>(
+            <div key={i} className="ls-row">
+              {/* Locked toggle indicator */}
+              <div style={{flexShrink:0,width:36,height:20,borderRadius:10,background:'#702b9d',position:'relative'}}>
+                <div style={{position:'absolute',top:3,left:19,width:14,height:14,borderRadius:'50%',background:'#fff',boxShadow:'0 1px 3px rgba(0,0,0,.25)'}}/>
+              </div>
+              <div style={{flex:1,minWidth:0}}>
+                <div style={{display:'flex',alignItems:'center',gap:8,flexWrap:'wrap',marginBottom:1}}>
+                  <span style={{fontFamily:'ui-monospace,"SF Mono",monospace',fontSize:11,fontWeight:700,color:'#702b9d'}}>{item.code}</span>
+                  <span style={{fontFamily:'ui-monospace,"SF Mono",monospace',fontSize:10,fontWeight:700,background:'rgba(112,43,157,0.12)',color:'#702b9d',border:'1px solid rgba(112,43,157,0.3)',borderRadius:2,padding:'1px 5px'}}>{item.cr} cr</span>
+                </div>
+                <div style={{fontSize:13,color:'var(--text)'}}>{item.desc}</div>
+                <div style={{fontSize:11,color:'#702b9d',marginTop:2,fontStyle:'italic'}}>{item.satisfies}</div>
+              </div>
+              <div className="ls-done-badge">✓ LS Core</div>
+            </div>
+          ))}
+          {/* Footer note */}
+          <div style={{padding:'8px 14px',background:'var(--violet-bg)',borderBottom:'1px solid var(--border)',fontSize:11,color:'var(--nyu-violet-dk)',lineHeight:1.65}}>
+            <strong>Still required after LS Core:</strong> Foreign Language (all 4 levels unless placed out or AP-exempt) · First-Year Seminar (verify with CAS advisor) · all major requirements below.
+          </div>
+        </div>
+      )}
+
+      {groups.map((grp,gi)=>(
+        <div key={gi} style={{marginBottom:24}}>
+          {/* Source header */}
+          <div style={{
+            display:'flex',alignItems:'center',justifyContent:'space-between',
+            background:grp.color,color:'#fff',padding:'8px 14px',marginBottom:1,
+          }}>
+            <div style={{fontFamily:"'Barlow Condensed','Barlow',sans-serif",fontWeight:700,fontSize:13,letterSpacing:'.05em',textTransform:'uppercase'}}>
+              {grp.label}
+              <span style={{fontWeight:400,fontSize:11,opacity:.7,marginLeft:10}}>
+                {grp.courses.filter(c=>completed.has(c.course_code)).length}/{grp.courses.length} done
+              </span>
+            </div>
+            <div style={{display:'flex',gap:8}}>
+              <button onClick={()=>selectAllGroup(grp.courses)} style={{fontSize:11,background:'rgba(255,255,255,0.18)',border:'1px solid rgba(255,255,255,0.35)',color:'#fff',borderRadius:2,padding:'2px 10px',cursor:'pointer'}}>All done</button>
+              <button onClick={()=>deselectAllGroup(grp.courses)} style={{fontSize:11,background:'transparent',border:'1px solid rgba(255,255,255,0.3)',color:'rgba(255,255,255,0.75)',borderRadius:2,padding:'2px 10px',cursor:'pointer'}}>None</button>
+            </div>
+          </div>
+
+          {/* Course rows grouped by category within source */}
+          {CAT_ORDER.map(cat=>{
+            const list=grp.courses.filter(c=>(c.category===cat)||(cat==='major_elective'&&!CAT_ORDER.slice(0,-1).includes(c.category)));
+            if(!list.length) return null;
+            const st=getC(cat);
+            return (
+              <div key={cat}>
+                <div style={{fontSize:10,fontWeight:700,textTransform:'uppercase',letterSpacing:'.08em',color:'var(--muted)',background:'var(--surface2)',padding:'4px 14px',borderBottom:'1px solid var(--border)'}}>
+                  {CAT_LABEL[cat]}
+                </div>
+                {list.map(c=>{
+                  const done=completed.has(c.course_code);
+                  const covered=c.coveredByMajor&&grp.source!=='major';
+                  const lsSat=lsPath&&LS_SATISFIED_GENEDS.has(c.course_code);
+                  return (
+                    <div key={c.course_code}
+                      onClick={()=>toggle(c.course_code)}
+                      role={lsSat?undefined:'checkbox'} aria-checked={done}
+                      tabIndex={lsSat?undefined:0}
+                      onKeyDown={lsSat?undefined:(e=>{if(e.key===' '||e.key==='Enter'){e.preventDefault();toggle(c.course_code);}})}
+                      style={{
+                        display:'flex',alignItems:'center',gap:14,padding:'10px 14px',
+                        cursor:lsSat?'default':'pointer',
+                        background:lsSat?'#f8f4fc':done?st.bg:'var(--surface)',
+                        borderLeft:`3px solid ${lsSat?'#702b9d':done?st.bd:covered?grp.color:'var(--border)'}`,
+                        borderBottom:'1px solid var(--border)',transition:'all .12s',
+                        opacity: covered&&!done&&!lsSat ? 0.75 : 1,
+                      }}
+                      onMouseEnter={e=>{if(!done&&!lsSat)e.currentTarget.style.background='var(--surface2)';}}
+                      onMouseLeave={e=>{if(!done&&!lsSat)e.currentTarget.style.background='var(--surface)';}}
+                    >
+                      {/* Toggle / LS lock indicator */}
+                      {lsSat?(
+                        <div style={{flexShrink:0,width:36,height:20,borderRadius:10,background:'#702b9d',position:'relative'}}>
+                          <div style={{position:'absolute',top:3,left:19,width:14,height:14,borderRadius:'50%',background:'#fff',boxShadow:'0 1px 3px rgba(0,0,0,.25)'}}/>
+                        </div>
+                      ):(
+                        <div role="presentation" style={{flexShrink:0,width:36,height:20,borderRadius:10,background:done?st.bd:'var(--border2)',position:'relative',transition:'background .15s'}}>
+                          <div style={{position:'absolute',top:3,left:done?19:3,width:14,height:14,borderRadius:'50%',background:'#fff',transition:'left .15s',boxShadow:'0 1px 3px rgba(0,0,0,.25)'}}/>
+                        </div>
+                      )}
+                      {/* Info */}
+                      <div style={{flex:1,minWidth:0}}>
+                        <div style={{display:'flex',alignItems:'center',gap:8,flexWrap:'wrap',marginBottom:1}}>
+                          <span style={{fontFamily:'ui-monospace,"SF Mono",monospace',fontSize:11,fontWeight:700,color:done?st.cd:'var(--muted)'}}>{displayCode(c)}</span>
+                          <span style={{fontFamily:'ui-monospace,"SF Mono",monospace',fontSize:10,fontWeight:700,background:done?st.bd+'22':'var(--surface2)',color:done?st.cd:'var(--muted)',border:`1px solid ${done?st.bd+'44':'var(--border)'}`,borderRadius:2,padding:'1px 5px'}}>{parseInt(c.credits)||4} cr</span>
+                          {covered&&<span style={{fontSize:10,fontWeight:700,color:'#fff',background:grp.color,borderRadius:2,padding:'1px 7px'}}>✓ Covered by Major</span>}
+                        </div>
+                        <div style={{fontSize:13,color:done?st.tx:'var(--text)',fontWeight:done?500:400}}>{displayTitle(c)}</div>
+                        {c.prereqs&&c.prereqs!=='None'&&c.prereqs.trim()&&!isPlaceholder(c.course_code)&&(
+                          <div style={{fontSize:11,color:'var(--muted)',marginTop:2,fontStyle:'italic'}}>Prereq: {c.prereqs.split('|').join(', ')}</div>
+                        )}
+                        {c.notes&&grp.source!=='major'&&c.notes.includes('recommended')&&(
+                          <div style={{fontSize:10,color:'var(--muted)',marginTop:2}}>{c.notes}</div>
+                        )}
+                      </div>
+                      {done&&<div style={{flexShrink:0,fontSize:11,fontWeight:700,color:st.cd,background:st.bg,border:`1px solid ${st.bd}`,borderRadius:2,padding:'2px 8px'}}>✓ Done</div>}
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })}
+        </div>
+      ))}
+
+      <div className="info-box" style={{marginBottom:20}}>
+        <strong style={{fontWeight:700,color:'var(--nyu-violet-dk)'}}>Tip:</strong> Courses marked <em>"Covered by Major"</em> already satisfy both your major and your minor/track — toggle them once. Pre-Law courses are recommended skill-builders, not strict requirements; toggle only what you've taken.
+      </div>
+
+      <div className="btn-row">
+        <button className="btn btn-outline" onClick={onBack}>← Back</button>
+        <button className="btn btn-primary" onClick={onNext}>Generate degree plan →</button>
+      </div>
+    </div>
+  );
+}
+
+
+// ── DRAG & DROP ENGINE ───────────────────────────────────────────────────────
+
+// Build a courseCode→semIdx map, optionally excluding one code (the dragged one)
+function buildPosMap(sems, excludeCode) {
+  const map = {};
+  sems.forEach((sem, idx) => {
+    sem.courses.forEach(c => {
+      if (c.course_code !== excludeCode)
+        map[c.course_code.toUpperCase()] = idx;
+    });
+  });
+  return map;
+}
+
+// Validate whether `course` can be dropped onto `toSemIdx`
+// Returns {ok:bool, reason:string}
+function canMoveTo(course, toSemIdx, sems) {
+  if (toSemIdx < 0 || toSemIdx >= sems.length) return {ok:false, reason:'Invalid semester'};
+  const posMap = buildPosMap(sems, course.course_code);
+  const targetType = sems[toSemIdx]?.type;
+
+  // Term offering
+  if (!offeredIn(course.offered || 'both', targetType))
+    return {ok:false, reason:`Only offered in ${course.offered} semesters`};
+
+  // Prereq check — use canonical evalPrereqs; a prereq is met if it's placed before toSemIdx
+  const prereqStr = (course.prereqs || '').trim();
+  if (prereqStr && prereqStr !== 'None' && prereqStr !== 'none') {
+    const parts = prereqStr.split('|').map(p=>p.trim().toUpperCase()).filter(p=>p&&!isPlaceholder(p));
+    if (parts.length) {
+      const ok = evalPrereqs(prereqStr, p => {
+        const idx = posMap[p];
+        return idx === undefined || idx < toSemIdx; // unseen = doesn't constrain; placed = must be before
+      });
+      if (!ok) {
+        // Identify which prereq is blocking for the error message
+        const blocker = parts.find(p => posMap[p] !== undefined && posMap[p] >= toSemIdx);
+        return {ok:false, reason:`Prereq ${blocker||parts[0]} must come first`};
+      }
+    }
+  }
+
+  // Dependent check — courses that need this one as a prereq must all be after toSemIdx
+  const code = course.course_code.toUpperCase();
+  for (const [idx, sem] of sems.entries()) {
+    for (const c of sem.courses) {
+      if (c.course_code === course.course_code) continue;
+      const deps = (c.prereqs||'').split('|').map(p=>p.trim().toUpperCase()).filter(Boolean);
+      if (deps.includes(code)) {
+        const cIdx = posMap[c.course_code.toUpperCase()];
+        if (cIdx !== undefined && cIdx <= toSemIdx)
+          return {ok:false, reason:`${c.course_code} depends on this course`};
+      }
+    }
+  }
+
+  return {ok:true, reason:''};
+}
+
+// Execute move + cascade: push any newly-invalid courses to earliest valid semester
+function applyMove(course, fromIdx, toIdx, prevSems) {
+  let sems = prevSems.map(s=>({...s, courses:[...s.courses]}));
+
+  // Primary move
+  sems[fromIdx].courses = sems[fromIdx].courses.filter(c=>c.course_code!==course.course_code);
+  sems[toIdx].courses   = [...sems[toIdx].courses, course];
+
+  // Cascade: resolve any prereq violations introduced by the move
+  let changed=true, guard=0;
+  while (changed && guard++<40) {
+    changed=false;
+    outer:
+    for (let idx=0; idx<sems.length; idx++) {
+      for (const c of [...sems[idx].courses]) {
+        const pm = buildPosMap(sems, c.course_code);
+        const prereqStr = (c.prereqs||'').trim();
+        if (!prereqStr||prereqStr==='None'||prereqStr==='none') continue;
+        const parts = prereqStr.split('|').map(p=>p.trim().toUpperCase()).filter(p=>p&&!isPlaceholder(p));
+        if (!parts.length) continue;
+        const depts=parts.map(getDept);
+        const allSame=depts[0]&&depts.every(d=>d===depts[0]);
+        let violated=false;
+        if (allSame) {
+          const anyInPlan=parts.some(p=>pm[p]!==undefined);
+          const anyBefore=parts.some(p=>pm[p]!==undefined&&pm[p]<idx);
+          if (anyInPlan&&!anyBefore) violated=true;
+        } else {
+          for (const p of parts) { if(pm[p]!==undefined&&pm[p]>=idx){violated=true;break;} }
+        }
+        if (violated) {
+          // Find earliest valid destination
+          const latestPrereq=Math.max(0,...parts.map(p=>pm[p]??-1));
+          for (let ni=latestPrereq+1; ni<sems.length; ni++) {
+            if (ni===idx) continue;
+            if (!offeredIn(c.offered||'both', sems[ni].type)) continue;
+            sems[idx].courses=sems[idx].courses.filter(x=>x.course_code!==c.course_code);
+            sems[ni].courses=[...sems[ni].courses, c];
+            changed=true; break outer;
+          }
+        }
+      }
+    }
+  }
+
+  // Recalculate per-semester credits
+  sems.forEach(s=>{ s.credits=s.courses.reduce((acc,c)=>acc+(parseInt(c.credits)||4),0); });
+  return sems;
+}
+
+// ── COMPONENTS ───────────────────────────────────────────────────────────────
+
+function CourseChip({c, onDragStart, activeDrag}) {
+  const st=getC(c.category);
+  const fake=isPlaceholder(c.course_code);
+  const srcTag = c._source==='minor' ? {label:'Minor',bg:'#185FA5'}
+               : c._source==='track' ? {label:c.major_slug==='pre-med-track'?'Pre-Med':'Pre-Law',bg:'#1A7A58'}
+               : null;
+  const isDragging = activeDrag && activeDrag.course && activeDrag.course.course_code === c.course_code;
+
+  return (
+    <div
+      draggable
+      onDragStart={e => {
+        e.dataTransfer.effectAllowed='move';
+        e.dataTransfer.setData('text/plain', c.course_code);
+        onDragStart(c);
+      }}
+      className="course"
+      style={{
+        background:st.bg, borderLeftColor:st.bd,
+        opacity: isDragging ? 0.35 : 1,
+        cursor: 'grab',
+        transition:'opacity .15s',
+        userSelect:'none',
+      }}
+    >
+      <div className="course-top">
+        <div style={{display:'flex',alignItems:'center',gap:5}}>
+          <span style={{color:st.bd,fontSize:11,opacity:.5,flexShrink:0}} title="Drag to move">⠿</span>
+          <span className="course-code" style={{color:st.cd}}>
+            {fake ? st.label.toUpperCase() : c.course_code}
+          </span>
+        </div>
+        <div style={{display:'flex',gap:4,alignItems:'center'}}>
+          {srcTag&&<span style={{fontSize:9,fontWeight:700,color:'#fff',background:srcTag.bg,borderRadius:2,padding:'1px 5px'}}>{srcTag.label}</span>}
+          <span className="course-cr" style={{color:st.tx,background:st.bd+'33'}}>
+            {parseInt(c.credits)||4} cr
+          </span>
+        </div>
+      </div>
+      <div className="course-title">{displayTitle(c)||c.course_title}</div>
+      {c.prereqs&&c.prereqs!=='None'&&!fake&&(
+        <div className="course-pre">Prereq: {c.prereqs.split('|').join(', ')}</div>
+      )}
+    </div>
+  );
+}
+
+function SemCard({sem, semIdx, activeDrag, onDragStart, onDragOver, onDragLeave, onDrop}) {
+  const isOver   = activeDrag && activeDrag.overIdx === semIdx;
+  const isValid  = isOver && activeDrag.valid === true;
+  const isInvalid= isOver && activeDrag.valid === false;
+
+  const borderColor = isValid   ? '#1D9E75'
+                    : isInvalid ? '#C0392B'
+                    : 'var(--border)';
+  const bgOverlay   = isValid   ? 'rgba(29,158,117,0.06)'
+                    : isInvalid ? 'rgba(192,57,43,0.06)'
+                    : 'transparent';
+
+  return (
+    <div
+      className="sem-card"
+      style={{border:`1.5px solid ${borderColor}`,background:bgOverlay,transition:'border-color .1s,background .1s'}}
+      onDragOver={e => onDragOver(semIdx, e)}
+      onDragLeave={e => onDragLeave(e)}
+      onDrop={e => onDrop(semIdx, e)}
+    >
+      <div className="sem-hdr">
+        <span className="sem-name">{sem.term}</span>
+        <span className="sem-cr">{sem.credits} cr</span>
+      </div>
+      <div className="sem-body">
+        {isOver && (
+          <div style={{
+            margin:'0 0 6px',padding:'5px 10px',borderRadius:2,fontSize:11,fontWeight:600,
+            background: isValid ? 'rgba(29,158,117,0.12)' : 'rgba(192,57,43,0.10)',
+            color: isValid ? '#1A7A58' : '#C0392B',
+            border: `1px dashed ${isValid ? '#1D9E75' : '#C0392B'}`,
+          }}>
+            {isValid ? '✓ Drop to place here' : `✗ ${activeDrag.reason||'Invalid move'}`}
+          </div>
+        )}
+        {sem.courses.length===0
+          ? <p className="muted" style={{fontSize:12}}>No courses scheduled — drag one here.</p>
+          : sem.courses.map((c,i)=>(
+              <CourseChip
+                key={`${c.course_code}-${c.category}-${i}`}
+                c={c}
+                activeDrag={activeDrag}
+                onDragStart={course => onDragStart(course, semIdx)}
+              />
+            ))
+        }
+      </div>
+    </div>
+  );
+}
+
+function Stat({label,value,note,warn}) {
+  return (
+    <div className="stat">
+      <div className="stat-label">{label}</div>
+      <div className={`stat-val${warn?' stat-warn':''}`}>{value}</div>
+      {note&&<div className="stat-note">{note}</div>}
+    </div>
+  );
+}
+
+function AcademicYearGrid({sems, activeDrag, onDragStart, onDragOver, onDragLeave, onDrop}) {
+  const years=[];
+  let i=0;
+  while(i<sems.length){
+    const s=sems[i];
+    if(s.type==='fall'&&i+1<sems.length&&sems[i+1].type==='spring'){
+      years.push({label:`Year ${years.length+1} — ${s.year}–${sems[i+1].year}`,pair:[s,sems[i+1]],idxs:[i,i+1]});
+      i+=2;
+    } else {
+      years.push({label:`Year ${years.length+1}`,pair:[s],idxs:[i]});
+      i++;
+    }
+  }
+  return (
+    <div style={{marginBottom:'2rem'}}>
+      {years.map((yr,yi)=>(
+        <div key={yi} style={{marginBottom:'1.5rem'}}>
+          <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:10}}>
+            <div style={{
+              background:'var(--nyu-violet-dk)',color:'#fff',
+              fontFamily:"'Barlow Condensed','Barlow',sans-serif",
+              fontWeight:700,fontSize:12,letterSpacing:'0.08em',
+              textTransform:'uppercase',padding:'3px 12px',borderRadius:2,whiteSpace:'nowrap',
+            }}>{yr.label}</div>
+            <div style={{flex:1,height:1,background:'var(--border)'}}/>
+          </div>
+          <div style={{
+            display:'grid',
+            gridTemplateColumns:yr.pair.length===2?'1fr 1fr':'minmax(270px,480px)',
+            gap:14,
+          }}>
+            {yr.pair.map((sem,si)=>(
+              <SemCard
+                key={si} sem={sem} semIdx={yr.idxs[si]}
+                activeDrag={activeDrag}
+                onDragStart={onDragStart}
+                onDragOver={onDragOver}
+                onDragLeave={onDragLeave}
+                onDrop={onDrop}
+              />
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function PlanScreen({plan, gradSem, gradYear, onBack, onRestart}) {
+  if (!plan) return <div className="err">No matching major data found in the CSV. Please check your CSV file and try again.</div>;
+
+  const [sems, setSems] = useState(()=>plan.sems);
+  const [activeDrag, setActiveDrag] = useState(null);
+
+  // Always-current ref so callbacks never read stale sems
+  const semsRef = useRef(sems);
+  useEffect(()=>{ semsRef.current = sems; }, [sems]);
+
+  // Always-current ref for activeDrag so dragend can read it
+  const dragRef = useRef(null);
+  useEffect(()=>{ dragRef.current = activeDrag; }, [activeDrag]);
+
+  const handleDragStart = useCallback((course, fromSemIdx) => {
+    const next = {course, fromSemIdx, overIdx:null, valid:null, reason:''};
+    dragRef.current = next;
+    setActiveDrag(next);
+  }, []);
+
+  const handleDragOver = useCallback((toSemIdx, e) => {
+    e.preventDefault();
+    const prev = dragRef.current;
+    if (!prev) return;
+    // Re-validate every time (sems may have changed)
+    const result = canMoveTo(prev.course, toSemIdx, semsRef.current);
+    const next = {...prev, overIdx:toSemIdx, valid:result.ok, reason:result.reason};
+    dragRef.current = next;
+    setActiveDrag(next);
+  }, []);
+
+  const handleDragLeave = useCallback((e) => {
+    // Only clear hover if we've left the sem-card entirely (not just moved to a child)
+    if (e.currentTarget.contains(e.relatedTarget)) return;
+    setActiveDrag(prev => {
+      if (!prev) return null;
+      const next = {...prev, overIdx:null, valid:null, reason:''};
+      dragRef.current = next;
+      return next;
+    });
+  }, []);
+
+  const handleDrop = useCallback((toSemIdx, e) => {
+    e.preventDefault();
+    const prev = dragRef.current;
+    if (!prev) return;
+    setActiveDrag(null);
+    dragRef.current = null;
+    const result = canMoveTo(prev.course, toSemIdx, semsRef.current);
+    if (result.ok && toSemIdx !== prev.fromSemIdx) {
+      setSems(s => applyMove(prev.course, prev.fromSemIdx, toSemIdx, s));
+    }
+  }, []);
+
+  // Safety: clear drag state if mouse released outside any drop zone
+  useEffect(()=>{
+    const clear = () => { setActiveDrag(null); dragRef.current = null; };
+    window.addEventListener('dragend', clear);
+    return () => window.removeEventListener('dragend', clear);
+  }, []);
+
+  const printPlan=()=>{
+    const w=window.open('','_blank');
+    const yearBlocks=[]; let si=0;
+    while(si<sems.length){
+      const s=sems[si];
+      if(s.type==='fall'&&si+1<sems.length&&sems[si+1].type==='spring'){
+        yearBlocks.push([s,sems[si+1]]); si+=2;
+      } else { yearBlocks.push([s]); si++; }
+    }
+    const semHtml=sem=>`
+      <div style="flex:1;min-width:0">
+        <h3 style="font-size:13px;font-weight:700;background:#57068C;color:#fff;padding:7px 12px;margin:0 0 8px">${sem.term} — ${sem.credits} cr</h3>
+        ${sem.courses.map(c=>`<div style="margin-bottom:5px;padding:6px 10px;background:#f5f4f7;border-left:3px solid #57068C">
+          <strong style="font-family:monospace;font-size:11px">${isPlaceholder(c.course_code)?getC(c.category).label.toUpperCase():c.course_code}</strong>
+          <span style="font-size:11px;float:right">${parseInt(c.credits)||4} cr</span>
+          <div style="font-size:12px;color:#333;margin-top:2px">${displayTitle(c)||c.course_title}</div>
+        </div>`).join('')}
+      </div>`;
+    const yearRows=yearBlocks.map((pair,yi)=>`
+      <div style="margin-bottom:24px">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#330662;background:#eee6f3;padding:4px 10px;margin-bottom:10px">
+          Year ${yi+1}${pair.length===2?' — '+pair[0].year+'–'+pair[1].year:''}
+        </div>
+        <div style="display:flex;gap:14px">${pair.map(semHtml).join('')}</div>
+      </div>`).join('');
+    const lsHtml = plan.isLSPath ? `
+      <div style="margin-bottom:24px;padding:12px 16px;background:#f8f4fc;border-left:4px solid #702b9d;border-radius:2px">
+        <strong style="color:#4a1a6e;font-size:13px;">Liberal Studies Core — 64 Credits (Transferred)</strong>
+        <p style="margin:6px 0 0;font-size:12px;color:#555;line-height:1.6">
+          Writing (WREX-UF 101 + WRCI-UF 102) · Arts &amp; Cultures I–III · Global Works &amp; Society I–III · Natural Sciences (×2) · LS Electives.<br>
+          Satisfies: Writing Requirement · Texts &amp; Ideas · Cultures &amp; Contexts · Expressive Culture · Phys. &amp; Life Science · Societies &amp; Social Sciences.<br>
+          <em>Still required: Foreign Language · First-Year Seminar (confirm with CAS advisor).</em>
+        </p>
+      </div>` : '';
+    w.document.write(`<html><head><title>${plan.majorName} Degree Plan</title>
+      <style>body{font-family:sans-serif;padding:2rem;max-width:960px;margin:0 auto;color:#111}
+      h1{font-size:20px;margin-bottom:4px;color:#330662}p.sub{color:#666;font-size:13px;margin-bottom:24px}
+      @media print{body{padding:1rem}}</style></head><body>
+      <h1>${plan.majorName} (${plan.degree}) — Degree Plan</h1>
+      <p class="sub">Graduation: ${gradSem} ${gradYear} · ${sems.length} semesters · ${totalCr} credits · NYU CAS 2025–26 Bulletin${plan.isLSPath?' · LS Core → CAS':''}</p>
+      ${lsHtml}
+      ${yearRows}
+      <p style="font-size:11px;color:#999;margin-top:2rem;border-top:1px solid #eee;padding-top:1rem">Generated by NYU CAS Degree Planner. Verify with your academic advisor.</p>
+      </body></html>`);
+    w.document.close();
+    setTimeout(()=>w.print(),400);
+  };
+
+  const plannedCr  = useMemo(()=>sems.reduce((s,sem)=>s+sem.credits,0), [sems]);
+  const casCrPlan  = useMemo(()=>sems.flatMap(s=>s.courses).filter(c=>c.course_code.includes('-UA')).reduce((s,c)=>s+(parseInt(c.credits)||4),0), [sems]);
+  const casTotal   = (plan.casCompleted||0) + casCrPlan;
+  const totalCr    = plan.completedCr + plannedCr;
+  const unplaced   = plan.unplaced;
+
+  return (
+    <div>
+      <div className="plan-hdr">
+        <div>
+          <div className="plan-title">{plan.majorName} ({plan.degree})</div>
+          <div className="plan-sub" style={{display:'flex',alignItems:'center',flexWrap:'wrap',gap:6,marginTop:4}}>
+            <span>Graduation: {gradSem} {gradYear} · {sems.length} semesters · 2025–26 Bulletin</span>
+            {plan.isLSPath&&<span style={{background:'#702b9d',color:'#fff',fontSize:10,fontWeight:700,borderRadius:2,padding:'2px 8px'}}>LS Core → CAS</span>}
+            {plan.hasMinor&&<span style={{background:'#185FA5',color:'#fff',fontSize:10,fontWeight:700,borderRadius:2,padding:'2px 8px'}}>+ Minor</span>}
+            {plan.hasTrack&&<span style={{background:'#1A7A58',color:'#fff',fontSize:10,fontWeight:700,borderRadius:2,padding:'2px 8px'}}>+ {plan.hasTrack}</span>}
+          </div>
+        </div>
+        <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
+          <button className="btn btn-outline btn-sm" onClick={onBack}>← Edit</button>
+          <button className="btn btn-outline btn-sm" onClick={onRestart}>Start over</button>
+          <button className="btn btn-print btn-sm" onClick={printPlan}>🖨 Print / Save PDF</button>
+        </div>
+      </div>
+
+      {/* ── LS Core credit provenance callout ── */}
+      {plan.isLSPath&&(
+        <div style={{display:'flex',alignItems:'center',gap:12,padding:'10px 16px',marginBottom:16,background:'#f8f4fc',border:'1px solid #c9a8e6',borderRadius:2}}>
+          <div style={{flexShrink:0,fontSize:22}}>🎓</div>
+          <div style={{flex:1,fontSize:12,color:'#4a1a6e',lineHeight:1.6}}>
+            <strong style={{fontWeight:700}}>Liberal Studies Core:</strong> 64 credits applied from your LS Core completion, satisfying Writing, Texts &amp; Ideas, Cultures &amp; Contexts, Expressive Culture, both Sciences, and Societies &amp; Social Sciences. Foreign Language and First-Year Seminar still apply — verify with your CAS advisor.
+          </div>
+          <div style={{flexShrink:0,textAlign:'center',background:'#702b9d',color:'#fff',borderRadius:2,padding:'6px 14px'}}>
+            <div style={{fontWeight:700,fontSize:20,lineHeight:1}}>{LS_CORE_CREDITS}</div>
+            <div style={{fontSize:10,opacity:.85}}>LS cr</div>
+          </div>
+        </div>
+      )}
+
+      <div className="stats-grid">
+        <Stat label="Credits completed" value={plan.completedCr} note={plan.isLSPath?`incl. ${LS_CORE_CREDITS} cr LS Core`:'marked done by you'} />
+        <Stat label="Credits planned"   value={plannedCr}        note={`across ${sems.length} semesters`} />
+        <Stat label="Total credits"     value={totalCr}          note={totalCr>=128?'≥ 128 ✓':'< 128 required'} warn={totalCr<128} />
+        <Stat label="CAS −UA credits"   value={casTotal}         note={casTotal>=64?'≥ 64 required ✓':'< 64 — see advisor'} warn={casTotal<64} />
+      </div>
+
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:12,flexWrap:'wrap',gap:8}}>
+        <div className="legend">
+          {[['Required','var(--cat-req-bd)'],['Gen Ed','var(--cat-gen-bd)'],['Elective','var(--cat-elc-bd)'],['Flexible slot','var(--cat-fre-bd)']].map(([l,c])=>(
+            <span key={l} className="legend-item">
+              <span className="legend-dot" style={{background:c}}/>{l}
+            </span>
+          ))}
+        </div>
+        <div style={{fontSize:12,color:'var(--muted)',display:'flex',alignItems:'center',gap:5}}>
+          <span>⠿</span>
+          <span>Drag courses between semesters — invalid moves are blocked</span>
+        </div>
+      </div>
+
+      <AcademicYearGrid
+        sems={sems}
+        activeDrag={activeDrag}
+        onDragStart={handleDragStart}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+      />
+
+      {unplaced.length>0&&(
+        <div className="warn-box">
+          <div className="warn-title">⚠ {unplaced.length} course{unplaced.length>1?'s':''} could not be scheduled</div>
+          <div className="warn-body" style={{marginBottom:10}}>
+            These were excluded due to unmet prerequisites, term restrictions, or running out of semesters. Work with your advisor to fit them in.
+          </div>
+          <div>{unplaced.map((c,i)=><span key={i} className="code-pill">{c.course_code}</span>)}</div>
+        </div>
+      )}
+
+      <div className="info-box">
+        <strong style={{fontWeight:700,color:'var(--nyu-violet-dk)'}}>Important:</strong> This plan is a starting point for advising conversations — it is not an official degree audit. Verify it with an academic advisor and in Albert before registering.
+      </div>
+    </div>
+  );
+}
+
+// ─── APP ROOT ────────────────────────────────────────────────────────────────
+
+function App() {
+  const [step,setStep]   =useState('load');
+  const [rows,setRows]   =useState(null);
+  const [major,setMajor] =useState(null);
+  const [track,setTrack] =useState(null);   // null | 'pre-med-track' | 'pre-law-track'
+  const [minor,setMinor] =useState(null);   // null | {slug, name}
+  const [lsPath,setLsP]  =useState(false);  // LS Core → CAS transfer pathway
+  const [gradSem,setGS]  =useState('May');
+  const [gradYear,setGY] =useState(2028);
+  const [completed,setC] =useState(new Set());
+  const [plan,setPlan]   =useState(null);
+
+  // Load cached CSV from localStorage
+  useEffect(()=>{
+    try {
+      const cached=localStorage.getItem('nyu-cas-csv');
+      if(cached){const data=JSON.parse(cached);if(data?.length){setRows(data);setStep('setup');}}
+    } catch(_){}
+  },[]);
+
+  const loadCSV=useCallback(data=>{
+    setRows(data);
+    try{localStorage.setItem('nyu-cas-csv',JSON.stringify(data));}catch(_){}
+    setStep('setup');
+  },[]);
+
+  // Only real major slugs in the picker (exclude minors/tracks)
+  const majors=useMemo(()=>{
+    if(!rows)return[];
+    const seen=new Set();
+    return rows
+      .filter(r=>r.track_type==='major'&&!seen.has(r.major_slug)&&seen.add(r.major_slug))
+      .map(r=>({slug:r.major_slug,name:r.major_name,degree:r.degree}))
+      .sort((a,b)=>a.name.localeCompare(b.name));
+  },[rows]);
+
+  const generate=useCallback(()=>{
+    const p=generatePlan(rows,major.slug,minor?.slug||null,track,completed,gradSem,gradYear,lsPath);
+    setPlan(p);setStep('plan');
+  },[rows,major,minor,track,completed,gradSem,gradYear,lsPath]);
+
+  const restart=useCallback(()=>{
+    setMajor(null);setTrack(null);setMinor(null);setC(new Set());setPlan(null);setLsP(false);setStep('setup');
+  },[]);
+
+  const resetCSV=useCallback(()=>{
+    setRows(null);setMajor(null);setTrack(null);setMinor(null);setC(new Set());setPlan(null);setLsP(false);
+    try{localStorage.removeItem('nyu-cas-csv');}catch(_){}
+    setStep('load');
+  },[]);
+
+  return (
+    <>
+      <Header/>
+      <Steps step={step}/>
+      <div className="page-rule"/>
+      {step==='load'    && <UploadScreen onLoad={loadCSV}/>}
+      {step==='setup'   && <SetupScreen
+                              rows={rows} majors={majors}
+                              major={major} setMajor={setMajor}
+                              track={track} setTrack={setTrack}
+                              minor={minor} setMinor={setMinor}
+                              lsPath={lsPath} setLsPath={setLsP}
+                              gradSem={gradSem} setGradSem={setGS}
+                              gradYear={gradYear} setGradYear={setGY}
+                              onNext={()=>setStep('courses')}
+                              onReset={resetCSV}
+                              resetCompleted={()=>setC(new Set())}
+                            />}
+      {step==='courses' && <CoursesScreen
+                              rows={rows} major={major}
+                              track={track} minor={minor}
+                              lsPath={lsPath}
+                              completed={completed} setCompleted={setC}
+                              onNext={generate} onBack={()=>setStep('setup')}
+                            />}
+      {step==='plan'    && <PlanScreen plan={plan} gradSem={gradSem} gradYear={gradYear} onBack={()=>setStep('courses')} onRestart={restart}/>}
+    </>
+  );
+}
+
+ReactDOM.render(<App/>, document.getElementById('root'));</script>
+</body>
+</html>
