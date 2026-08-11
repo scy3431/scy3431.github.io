@@ -685,7 +685,7 @@ function Header() {
 }
 
 function Steps({step}) {
-  const STEPS=[['load','1. Load Data'],['setup','2. Your Major'],['courses','3. Past Courses'],['plan','4. Degree Plan']];
+  const STEPS=[['load','1. Loading Data'],['setup','2. Your Major'],['courses','3. Past Courses'],['plan','4. Degree Plan']];
   const idx=STEPS.findIndex(s=>s[0]===step);
   return (
     <div className="steps-wrap">
@@ -700,52 +700,18 @@ function Steps({step}) {
   );
 }
 
-function UploadScreen({onLoad}) {
-  const [drag,setDrag]=useState(false);
-  const [err,setErr]=useState('');
-  const ref=useRef();
-
-  const parse=file=>{
-    if (!file||!file.name.endsWith('.csv')){setErr('Please upload the nyu_cas_curriculum.csv file.');return;}
-    Papa.parse(file,{
-      header:true,skipEmptyLines:true,
-      complete:r=>{
-        if(r.data?.length){onLoad(r.data);}
-        else setErr('CSV appears empty or malformed.');
-      },
-      error:e=>setErr(e.message),
-    });
-  };
-
+function LoadingScreen({error}) {
   return (
     <div style={{maxWidth:540}}>
-      <h1 className="section-heading" style={{marginBottom:8}}>Plan your NYU degree</h1>
-      <p className="muted" style={{marginBottom:28,lineHeight:1.7}}>
-        Upload the <code className="mono" style={{fontSize:12,background:'var(--surface2)',padding:'1px 6px',borderRadius:4}}>nyu_cas_curriculum.csv</code> you generated from this chat. All 61 CAS majors, 2,007 course rows, completely offline — no account or API key needed.
-      </p>
-
-      <div
-        className={`drop-zone${drag?' drag':''}`}
-        role="button"
-        tabIndex={0}
-        aria-label="Upload nyu_cas_curriculum.csv — click or press Enter to browse"
-        onDragOver={e=>{e.preventDefault();setDrag(true);}}
-        onDragLeave={()=>setDrag(false)}
-        onDrop={e=>{e.preventDefault();setDrag(false);parse(e.dataTransfer.files[0]);}}
-        onClick={()=>ref.current?.click()}
-        onKeyDown={e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();ref.current?.click();}}}
-      >
-        <div className="drop-icon">📂</div>
-        <p style={{fontWeight:600,marginBottom:4}}>Drop nyu_cas_curriculum.csv here</p>
-        <p className="muted" style={{fontSize:13}}>or click to browse your files</p>
-        <input ref={ref} type="file" accept=".csv" style={{display:'none'}} onChange={e=>parse(e.target.files[0])} />
-      </div>
-
-      {err&&<div className="err">{err}</div>}
-
-      <div className="info-box">
-        <strong style={{fontWeight:700,color:'var(--nyu-violet-dk)'}}>First time?</strong> Download the CSV first using the link above this message, then upload it here. Once loaded, it's saved in your browser and you won't need to upload it again.
-      </div>
+      <h1 className="section-heading" style={{marginBottom:8}}>NYU CAS Degree Planner</h1>
+      {error ? (
+        <div className="err">
+          <strong>Could not load curriculum data.</strong> {error}
+          <div style={{marginTop:8}}>Please make sure <code className="mono">nyu_cas_curriculum_fixed.csv</code> is in the same <code className="mono">cas-planner</code> folder as this HTML file.</div>
+        </div>
+      ) : (
+        <p className="muted" style={{lineHeight:1.7}}>Loading the NYU CAS curriculum…</p>
+      )}
     </div>
   );
 }
@@ -798,7 +764,7 @@ function SetupScreen({rows,majors,major,setMajor,track,setTrack,minor,setMinor,l
     <div style={{maxWidth:540}}>
       <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:22}}>
         <h2 className="section-heading">Set up your plan</h2>
-        <button className="btn btn-outline btn-sm" onClick={onReset}>⟵ Change CSV</button>
+        <span className="muted" style={{fontSize:11}}>Curriculum loaded automatically</span>
       </div>
 
       {/* MAJOR */}
@@ -1644,6 +1610,7 @@ function PlanScreen({plan, gradSem, gradYear, onBack, onRestart}) {
 function App() {
   const [step,setStep]   =useState('load');
   const [rows,setRows]   =useState(null);
+  const [loadError,setLoadError] =useState('');
   const [major,setMajor] =useState(null);
   const [track,setTrack] =useState(null);   // null | 'pre-med-track' | 'pre-law-track'
   const [minor,setMinor] =useState(null);   // null | {slug, name}
@@ -1653,19 +1620,33 @@ function App() {
   const [completed,setC] =useState(new Set());
   const [plan,setPlan]   =useState(null);
 
-  // Load cached CSV from localStorage
-  useEffect(()=>{
-    try {
-      const cached=localStorage.getItem('nyu-cas-csv');
-      if(cached){const data=JSON.parse(cached);if(data?.length){setRows(data);setStep('setup');}}
-    } catch(_){}
-  },[]);
+  // The CSV lives beside this HTML file in the GitHub Pages cas-planner folder.
+  // Keeping this as a relative path means it works on scy3431.github.io as well
+  // as when the folder is moved to another static host.
+  const CSV_PATH = './nyu_cas_curriculum_fixed.csv';
 
-  const loadCSV=useCallback(data=>{
-    setRows(data);
-    try{localStorage.setItem('nyu-cas-csv',JSON.stringify(data));}catch(_){}
-    setStep('setup');
-  },[]);
+  // Automatically load the curriculum CSV when the page opens.
+  useEffect(()=>{
+    setStep('load');
+    setLoadError('');
+
+    Papa.parse(CSV_PATH, {
+      download: true,
+      header: true,
+      skipEmptyLines: true,
+      complete: result => {
+        if (result.data?.length) {
+          setRows(result.data);
+          setStep('setup');
+        } else {
+          setLoadError('The CSV was found, but it appears to be empty or malformed.');
+        }
+      },
+      error: error => {
+        setLoadError(error?.message || 'The curriculum CSV could not be fetched.');
+      }
+    });
+  }, []);
 
   // Only real major slugs in the picker (exclude minors/tracks)
   const majors=useMemo(()=>{
@@ -1686,18 +1667,12 @@ function App() {
     setMajor(null);setTrack(null);setMinor(null);setC(new Set());setPlan(null);setLsP(false);setStep('setup');
   },[]);
 
-  const resetCSV=useCallback(()=>{
-    setRows(null);setMajor(null);setTrack(null);setMinor(null);setC(new Set());setPlan(null);setLsP(false);
-    try{localStorage.removeItem('nyu-cas-csv');}catch(_){}
-    setStep('load');
-  },[]);
-
   return (
     <>
       <Header/>
       <Steps step={step}/>
       <div className="page-rule"/>
-      {step==='load'    && <UploadScreen onLoad={loadCSV}/>}
+      {step==='load'    && <LoadingScreen error={loadError}/>}
       {step==='setup'   && <SetupScreen
                               rows={rows} majors={majors}
                               major={major} setMajor={setMajor}
@@ -1707,7 +1682,6 @@ function App() {
                               gradSem={gradSem} setGradSem={setGS}
                               gradYear={gradYear} setGradYear={setGY}
                               onNext={()=>setStep('courses')}
-                              onReset={resetCSV}
                               resetCompleted={()=>setC(new Set())}
                             />}
       {step==='courses' && <CoursesScreen
